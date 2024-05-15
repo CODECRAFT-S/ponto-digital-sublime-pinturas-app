@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "ponto-digital-sublime-pinturas-app",
-    "slug": "ponto-digital-sublime-pinturas-app",
+    "name": "Ponto Digital - Sublime Pinturas",
+    "slug": "Ponto Digital - Sublime Pinturas",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
