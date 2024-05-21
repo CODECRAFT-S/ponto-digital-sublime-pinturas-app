@@ -11,4 +11,9 @@ export const Colors = {
         white: "#ffffff",
         yellow: "#FFC632",
     },
+    input: {
+        black: "#0A0A0B",
+        white: "#ffffff",
+        gray: "#888888",
+    },
 }

@@ -12,7 +12,29 @@ const styles = StyleSheet.create({
     logo: {
         width: 212,
         height: 212,
-    }
+    },
+    appName: {
+        width: "100%",
+        height: "auto",
+        alignItems: "center",
+        marginTop: 20,
+        gap: 5,
+    },
+    appTitle: {
+        color: Colors.text.yellow,
+        fontWeight: "bold",
+    },
+    appSubTitle: {
+        color: Colors.text.white,
+    },
+    formLogin: {
+        width: "75%",
+        marginTop: 50,
+        gap: 20,
+    },
+    input: {
+        backgroundColor: Colors.input.black,
+    },
 });
 
 export default styles
