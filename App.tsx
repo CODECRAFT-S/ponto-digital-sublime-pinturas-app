@@ -3,6 +3,7 @@ import { StyleSheet ,View, StatusBar } from 'react-native';
 import { Colors } from '@constants/Colors';
 
 import Login from '@pages/Login';
+import BaterPonto from '@pages/BaterPonto';
 
 export default function App() {
   return (
@@ -12,7 +13,7 @@ export default function App() {
         backgroundColor={Colors.theme.primary}
         barStyle= "light-content"
       />
-      <Login></Login>
+      <BaterPonto></BaterPonto>
     </View>
   );
 }
