@@ -35,6 +35,11 @@ const styles = StyleSheet.create({
     input: {
         backgroundColor: Colors.input.black,
     },
+    btnLogin: {
+        width: "100%",
+        height: "auto",
+        marginTop: 40,
+    }
 });
 
 export default styles

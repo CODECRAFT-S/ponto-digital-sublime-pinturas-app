@@ -8,6 +8,7 @@ import { Entypo } from "@expo/vector-icons";
 import styles from "./styles";
 import logoSP from "@image/logo.svg";
 import { Colors } from "@constants/Colors";
+import ButtonConfirm from "@components/ButtonConfirm";
 
 export default function Login() {
     const [login, setLogin] = useState("");
@@ -92,7 +93,9 @@ export default function Login() {
                         />
                     }
                 />
-                
+                <View style={styles.btnLogin}>
+                    <ButtonConfirm text="Entrar"/>
+                </View>
             </View>
         </View>
     );

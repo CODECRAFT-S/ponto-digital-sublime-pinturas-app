@@ -1,11 +1,16 @@
 import React from "react";
-import { View } from "react-native";
+import { View, TouchableOpacity, Text } from "react-native";
 
 import styles from "./styles";
 
-export default function ButtonConfirm() {
-    return(
-        <View
-        ></View>
-    )
+interface btnProps {
+    text: String
+}
+
+export default function ButtonConfirm({ text }: btnProps) {
+    return (
+        <TouchableOpacity style={styles.btn}>
+            <Text style={styles.btnText}>{ text }</Text>
+        </TouchableOpacity>
+    );
 }

@@ -10,10 +10,12 @@ export const Colors = {
         secudary: "#AFB6C2",
         white: "#ffffff",
         yellow: "#FFC632",
+        black: "#000000",
     },
     input: {
         black: "#0A0A0B",
         white: "#ffffff",
         gray: "#888888",
+        yellow: "#FFC632",
     },
 }
