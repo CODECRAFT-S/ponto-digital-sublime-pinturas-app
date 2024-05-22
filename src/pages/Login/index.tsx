@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Image } from "expo-image";
-import { View } from "react-native";
+import { View, Keyboard, Pressable } from "react-native";
 import { Button, Text, TextInput } from "react-native-paper";
 import { AntDesign } from "@expo/vector-icons";
 import { Entypo } from "@expo/vector-icons";
@@ -10,13 +10,24 @@ import logoSP from "@image/logo.svg";
 import { Colors } from "@constants/Colors";
 import ButtonConfirm from "@components/ButtonConfirm";
 
+interface Login {
+    login: string;
+    password: string;
+}
+
 export default function Login() {
-    const [login, setLogin] = useState("");
-    const [password, setPassword] = useState("");
-    const [passwordVisible, setPasswordVisible] = useState(false);
+    const [login, setLogin] = useState<string>("");
+    const [password, setPassword] = useState<string>("");
+    const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
+    const [submit, setSubmit] = useState<boolean>(false);
+    const [data, setData] = useState<Login>();
+
+    function teste() {
+        console.log("login");
+    }
 
     return (
-        <View style={styles.container}>
+        <Pressable onPress={Keyboard.dismiss} style={styles.container}>
             <Image style={styles.logo} source={logoSP} />
             <View style={styles.appName}>
                 <Text variant="headlineLarge" style={styles.appTitle}>
@@ -35,6 +46,7 @@ export default function Login() {
                     mode="outlined"
                     placeholder="Nome"
                     value={login}
+                    disabled={submit}
                     onChangeText={(value) => setLogin(value)}
                     left={
                         <TextInput.Affix
@@ -57,6 +69,7 @@ export default function Login() {
                     placeholder="Senha"
                     secureTextEntry={passwordVisible}
                     value={password}
+                    disabled={submit}
                     onChangeText={(value) => setPassword(value)}
                     left={
                         <TextInput.Affix
@@ -94,9 +107,17 @@ export default function Login() {
                     }
                 />
                 <View style={styles.btnLogin}>
-                    <ButtonConfirm text="Entrar"/>
+                    <ButtonConfirm
+                        text="Entrar"
+                        onPress={teste}
+                        disable={
+                            login == "" || password == "" || submit
+                                ? true
+                                : false
+                        }
+                    />
                 </View>
             </View>
-        </View>
+        </Pressable>
     );
 }
