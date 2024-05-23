@@ -7,7 +7,7 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.theme.primary,
         paddingHorizontal: 30,
     },
-    titlePage:{
+    titlePage: {
         width: "100%",
         height: "auto",
         marginTop: 50,
@@ -16,12 +16,12 @@ const styles = StyleSheet.create({
         color: Colors.text.primary,
         fontWeight: "700",
     },
-    scrollView:{
-        flex: 1,
+    scrollView: {
+        width: "100%",
+        height: "auto",
         gap: 15,
-        marginTop: 20,
+        paddingVertical: 20,
     },
-
 });
 
-export default styles
+export default styles;
