@@ -19,7 +19,7 @@ export default function BaterPonto() {
                         variant="titleMedium"
                         style={[styles.textUser, { fontWeight: "400" }]}
                     >
-                        Olá, 
+                        Olá, {" "}
                     </TextPaper>
                     <TextPaper
                         variant="titleMedium"
@@ -50,7 +50,7 @@ export default function BaterPonto() {
                 <TextPaper variant="labelLarge" style={{color: Colors.text.secondary}}>18 de Abril, 2024</TextPaper>
             </View>
             <View style={styles.btnPonto}>
-                <ButtonConfirm text="Bater Ponto"></ButtonConfirm>
+                <ButtonConfirm text="Bater Ponto" disable={photo == notFoundImage ? true : false}></ButtonConfirm>
             </View>
         </View>
     );
