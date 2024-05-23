@@ -4,7 +4,6 @@ import { StyleSheet } from "react-native";
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        alignItems: "center",
         backgroundColor: Colors.theme.primary,
         paddingHorizontal: 30,
     },
@@ -19,7 +18,7 @@ const styles = StyleSheet.create({
     },
     scrollView:{
         flex: 1,
-        gap: 20,
+        gap: 15,
         marginTop: 20,
     },
 
