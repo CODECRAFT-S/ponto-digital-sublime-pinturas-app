@@ -1,3 +1,4 @@
+import { Colors } from "@constants/Colors";
 import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
@@ -18,6 +19,19 @@ const styles = StyleSheet.create({
         flex: 1,
         alignSelf: "flex-end",
         alignItems: "center",
+    },
+    containerRequest: {
+        flex: 1,
+        backgroundColor: Colors.theme.primary,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+        gap: 10,
+    },
+    text: {
+        textAlign: 'center',
+        color: Colors.text.primary,
+        marginBottom: 50,
     },
 });
 
