@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     image: {
         width: 225,
         height: 225,
-        resizeMode: "contain",
+        // resizeMode: "contain",
     },
     cameraButton: {
         position: "absolute",

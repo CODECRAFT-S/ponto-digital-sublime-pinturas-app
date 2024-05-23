@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Image } from "expo-image";
 import { View, TouchableOpacity, Text } from "react-native";
 import { Text as TextPaper } from "react-native-paper";
@@ -10,6 +10,7 @@ import { Colors } from "@constants/Colors";
 import ButtonConfirm from "@components/ButtonConfirm";
 
 export default function BaterPonto() {
+    const [photo, setPhoto] = useState(notFoundImage)
     return (
         <View style={styles.container}>
             <View style={styles.headerPage}>
@@ -18,7 +19,7 @@ export default function BaterPonto() {
                         variant="titleMedium"
                         style={[styles.textUser, { fontWeight: "400" }]}
                     >
-                        Olá,{" "}
+                        Olá, 
                     </TextPaper>
                     <TextPaper
                         variant="titleMedium"
@@ -37,7 +38,7 @@ export default function BaterPonto() {
             </View>
             <View style={styles.imageContainer}>
                 <Image 
-                    source={notFoundImage} 
+                    source={photo} 
                     style={styles.image}
                 />
                 <TouchableOpacity style={styles.cameraButton}>
