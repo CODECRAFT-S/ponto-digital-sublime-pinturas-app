@@ -1,6 +1,6 @@
-import { StyleSheet ,View, StatusBar } from 'react-native';
+import { StyleSheet, View, StatusBar } from "react-native";
 
-import { Colors } from '@constants/Colors';
+import { Colors } from "@constants/Colors";
 
 import Login from '@pages/Login';
 import BaterPonto from '@pages/BaterPonto';
@@ -14,13 +14,13 @@ export default function App() {
         backgroundColor={Colors.theme.primary}
         barStyle= "light-content"
       />
-      <CapturePhoto></CapturePhoto>
+      <Login></Login>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  }
-})
+    container: {
+        flex: 1,
+    },
+});
