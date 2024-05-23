@@ -24,7 +24,7 @@ export default function CapturePhoto() {
         }
     }
 
-    if (true) {
+    if (!permission || !permission.granted) {
         return (
             <View style={styles.containerRequest}>
                 <Feather name="alert-triangle" size={100} color={Colors.text.yellow} />
