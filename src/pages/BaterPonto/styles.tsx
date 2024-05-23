@@ -4,7 +4,7 @@ import { StyleSheet } from 'react-native'
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: "center",
+        //justifyContent: "center",
         alignItems: "center",
         backgroundColor: Colors.theme.primary,
     },
@@ -13,8 +13,9 @@ const styles = StyleSheet.create({
         height: "auto",
         alignItems: "center",
         flexDirection: "row",
+        paddingTop: 30,
         paddingHorizontal: 20,
-        // backgroundColor: "#fff",
+        marginBottom: 50,
     },
     welcomeUser: {
         flex: 1,
@@ -25,21 +26,46 @@ const styles = StyleSheet.create({
     textUser: {
         color: Colors.text.primary
     },
+    imageContainer: {
+        width: "100%",
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+        marginVertical: 20,
+        marginBottom: 45,
+    },
+    image: {
+        width: 225,
+        height: 225,
+        resizeMode: "contain",
+    },
+    cameraButton: {
+        position: "absolute",
+        bottom: -20,
+        right:60,
+        backgroundColor: Colors.theme.secondary,
+        borderRadius: 100,
+        width: 63,
+        height: 63,
+        alignItems: "center",
+        justifyContent: "center",
+    },
     timeCurrent: {
         width: "100%",
         height: "auto",
         justifyContent: "center",
         alignItems: "center",
+        marginBottom: 5,
     },
     time: {
         color: Colors.text.primary,
-        fontSize: 75,
+        fontSize: 95,
         fontWeight: "700",
     },
     btnPonto: {
         width: "80%",
         height: "auto",
-        marginTop: 60,
+        marginTop: 40,
     },
 }); 
 

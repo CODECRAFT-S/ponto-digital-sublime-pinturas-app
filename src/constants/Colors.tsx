@@ -1,13 +1,14 @@
 export const Colors = {
     theme: {
         primary: "#191816",
-        secudary: "#FFC632",
+        secondary: "#FFC632",
         tertiary: "#29292E",
         fourthary: "#202024",
     },
     text: {
         primary: "#D4CCB6",
-        secudary: "#AFB6C2",
+        secondary: "#AFB6C2",
+        tertiary: "#473404",
         white: "#ffffff",
         yellow: "#FFC632",
         black: "#000000",
