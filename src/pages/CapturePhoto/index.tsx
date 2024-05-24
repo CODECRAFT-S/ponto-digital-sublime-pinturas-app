@@ -9,7 +9,7 @@ import styles from "./styles";
 import ButtonConfirm from "@components/ButtonConfirm";
 import { Colors } from "@constants/Colors";
 
-export default function CapturePhoto() {
+export default function CapturePhoto({ navigation, route }) {
     const [permission, requestPermission] = useCameraPermissions();
     const camRef = useRef<CameraView>(null);
 
@@ -17,10 +17,16 @@ export default function CapturePhoto() {
         if (camRef.current) {
             const options = {
                 quality: 0.5,
-                base64: true,
+                // base64: true,
             };
             const data = await camRef.current.takePictureAsync(options);
             console.log(data);
+            route.params?.photoData(data)
+            navigation.reset({
+                index: 0,
+                routes: [{ name: "Início", params: { photoData: data.uri } }],
+            });
+            navigation.navigate({ name: "Início", params: { photoData: data.uri } })
         }
     }
 
