@@ -2,6 +2,7 @@ import React from "react";
 import { View } from "react-native";
 import { Text } from "react-native-paper";
 import { Octicons } from "@expo/vector-icons";
+import { AntDesign } from "@expo/vector-icons";
 
 import styles from "./styles";
 import { Colors } from "@constants/Colors";
@@ -35,10 +36,10 @@ export default function PontoBox({
                         color={Colors.text.green}
                     />
                 ) : (
-                    <Octicons
-                        name="history"
-                        size={24}
-                        color={Colors.text.gray}
+                    <AntDesign 
+                        name="sync" 
+                        size={24} 
+                        color={Colors.text.gray} 
                     />
                 )}
             </View>

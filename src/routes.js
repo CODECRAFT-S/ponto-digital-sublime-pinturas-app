@@ -1,6 +1,6 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { createStackNavigator } from "@react-navigation/stack";
+import { createStackNavigator, TransitionPresets } from "@react-navigation/stack";
 import { FontAwesome } from "@expo/vector-icons";
 import { View } from "react-native";
 import { Colors } from "@constants/Colors";
@@ -83,10 +83,22 @@ function Tabs() {
 
 export default function Routes() {
     return (
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Navigator
+            initialRouteName="Login"
+            screenOptions={{
+                headerShown: false,
+                ...TransitionPresets.SlideFromRightIOS, 
+            }}
+        >
             <Stack.Screen name="Login" component={Login}></Stack.Screen>
             <Stack.Screen name="Home" component={Tabs}></Stack.Screen>
-            <Stack.Screen name="CapturePhoto" component={CapturePhoto}></Stack.Screen>
+            <Stack.Screen
+                name="CapturePhoto"
+                component={CapturePhoto}
+                options={{
+                    ...TransitionPresets.ModalPresentationIOS,
+                }}
+            ></Stack.Screen>
         </Stack.Navigator>
     );
 }
