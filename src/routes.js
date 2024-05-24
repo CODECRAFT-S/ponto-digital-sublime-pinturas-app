@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { FontAwesome } from '@expo/vector-icons';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import { Colors } from '@constants/Colors';
 
 import BaterPonto from '@pages/BaterPonto';
