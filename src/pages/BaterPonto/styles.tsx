@@ -13,9 +13,9 @@ const styles = StyleSheet.create({
         height: "auto",
         alignItems: "center",
         flexDirection: "row",
-        paddingTop: 30,
+        paddingTop: 35,
         paddingHorizontal: 20,
-        marginBottom: 50,
+        marginBottom: 30,
     },
     welcomeUser: {
         flex: 1,
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         position: "relative",
         marginVertical: 20,
-        marginBottom: 45,
+        marginBottom: 40,
     },
     image: {
         width: 225,
