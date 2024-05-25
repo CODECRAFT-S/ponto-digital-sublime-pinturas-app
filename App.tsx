@@ -1,26 +1,18 @@
-import { StyleSheet, View, StatusBar } from "react-native";
-
+import React from "react";
+import Routes from "routes";
+import { StatusBar } from "react-native";
 import { Colors } from "@constants/Colors";
-
-import Login from '@pages/Login';
-import BaterPonto from '@pages/BaterPonto';
-import CapturePhoto from '@pages/CapturePhoto';
+import { NavigationContainer } from '@react-navigation/native';
 
 export default function App() {
   return (
-    <View style={styles.container}>
+    <NavigationContainer>
       <StatusBar
         animated={true}
         backgroundColor={Colors.theme.primary}
         barStyle= "light-content"
       />
-      <Login></Login>
-    </View>
+      <Routes />
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-});

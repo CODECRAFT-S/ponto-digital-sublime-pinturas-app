@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
     scrollView: {
         width: "100%",
         height: "auto",
-        gap: 15,
+        gap: 12,
         paddingVertical: 20,
     },
 });

@@ -15,15 +15,16 @@ interface Login {
     password: string;
 }
 
-export default function Login() {
+export default function Login({ navigation }) {
     const [login, setLogin] = useState<string>("");
     const [password, setPassword] = useState<string>("");
     const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
     const [submit, setSubmit] = useState<boolean>(false);
     const [data, setData] = useState<Login>();
 
-    function teste() {
-        console.log("login");
+    function handleLogin() {
+        console.log("Logando");
+        navigation.navigate("Home");
     }
 
     return (
@@ -67,7 +68,7 @@ export default function Login() {
                     cursorColor={Colors.text.primary}
                     mode="outlined"
                     placeholder="Senha"
-                    secureTextEntry={passwordVisible}
+                    secureTextEntry={!passwordVisible}
                     value={password}
                     disabled={submit}
                     onChangeText={(value) => setPassword(value)}
@@ -94,7 +95,7 @@ export default function Login() {
                                 >
                                     <Entypo
                                         name={
-                                            passwordVisible
+                                            !passwordVisible
                                                 ? "eye"
                                                 : "eye-with-line"
                                         }
@@ -109,7 +110,7 @@ export default function Login() {
                 <View style={styles.btnLogin}>
                     <ButtonConfirm
                         text="Entrar"
-                        onPress={teste}
+                        onPress={handleLogin}
                         disable={
                             login == "" || password == "" || submit
                                 ? true

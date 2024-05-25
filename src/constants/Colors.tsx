@@ -14,6 +14,7 @@ export const Colors = {
         black: "#000000",
         green: "#00b37e",
         gray: "#C4C4CC",
+        red: "#6c0000e0",
     },
     input: {
         black: "#0A0A0B",

@@ -10,7 +10,7 @@ export default function HistoricoPonto() {
         <View style={styles.container}>
             <View style={styles.titlePage}>
                 <Text style={styles.titleText} variant="titleMedium">
-                    Histórico de Resitros
+                    Histórico de Registros
                 </Text>
             </View>
             <ScrollView
