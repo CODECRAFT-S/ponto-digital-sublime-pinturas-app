@@ -9,38 +9,33 @@ import { Colors } from "@constants/Colors";
 
 interface ModalDetails {
     mensagem: String;
-    status: "Sucess" | "Fail" | "Alert";
+    status: "Success" | "Fail" | "Alert";
     timeVisable: number;
+    visible: boolean;
+    onDismiss: () => void;
 }
 
 export default function ModalNotification({
     mensagem,
     status,
     timeVisable,
+    visible,
+    onDismiss,
 }: ModalDetails) {
-    const [visibleModal, setVisibleModal] = useState(true);
-
-    const showModal = () => setVisibleModal(true);
-    const hideModal = () => setVisibleModal(false);
-
-    function showModalMensagem() {
-        showModal();
-        setTimeout(function () {
-            hideModal();
-        }, timeVisable);
-    }
-
-    // useEffect(()=>{
-    //     showModalMensagem()
-    // },[])
+    useEffect(() => {
+        if (visible) {
+            const timer = setTimeout(onDismiss, timeVisable);
+            return () => clearTimeout(timer);
+        }
+    }, [visible, timeVisable, onDismiss]);
 
     return (
         <Modal
-            visible={visibleModal}
-            onDismiss={hideModal}
+            visible={visible}
+            onDismiss={onDismiss}
             contentContainerStyle={styles.modalMensagem}
         >
-            {status == "Sucess" ? (
+            {status == "Success" ? (
                 <Octicons name="verified" size={50} color={Colors.text.green} />
             ) : status == "Fail" ? (
                 <FontAwesome name="close" size={50} color={Colors.text.red} />

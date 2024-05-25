@@ -11,6 +11,8 @@ import { Colors } from "@constants/Colors";
 import ButtonConfirm from "@components/ButtonConfirm";
 import ModalNotification from "@components/ModalNotification";
 
+type ModalStatus = "Success" | "Fail" | "Alert";
+
 export default function BaterPonto({ navigation, route }) {
     useEffect(() => {
         (async () => {
@@ -24,6 +26,10 @@ export default function BaterPonto({ navigation, route }) {
 
     const [photo, setPhoto] = useState(route.params?.photoData ?? notFoundImage);
     const [dataTime, setDataTime] = useState(new Date());
+
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalMessage, setModalMessage] = useState("");
+    const [modalStatus, setModalStatus] = useState<ModalStatus>("Success");
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -72,11 +78,21 @@ export default function BaterPonto({ navigation, route }) {
     async function handleBaterPonto() {
         setPhoto(notFoundImage);
         let timeFull = dataTime.toTimeString();
-        let location = await Location.getCurrentPositionAsync({});
-        console.log("Batendo Ponto");
-        console.log(location);
-        console.log(timeFull);
-        console.log(photo);
+        try {
+            let location = await Location.getCurrentPositionAsync({});
+            console.log("Batendo Ponto");
+            console.log(location);
+            console.log(timeFull);
+            console.log(photo);
+
+            setModalMessage("Ponto registrado com sucesso!");
+            setModalStatus("Success");
+        } catch (error) {
+            console.log(error);
+            setModalMessage("Falha ao registrar o ponto. Tente novamente.");
+            setModalStatus("Fail");
+        }
+        setModalVisible(true);
     }
 
     return (
@@ -133,7 +149,13 @@ export default function BaterPonto({ navigation, route }) {
                     onPress={handleBaterPonto}
                 ></ButtonConfirm>
             </View>
-            <ModalNotification></ModalNotification>
+            <ModalNotification
+                mensagem={modalMessage}
+                status={modalStatus}
+                timeVisable={3000}
+                visible={modalVisible}
+                onDismiss={() => setModalVisible(false)}
+            />
         </View>
     );
 }
