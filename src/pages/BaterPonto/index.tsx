@@ -3,27 +3,26 @@ import { Image } from "expo-image";
 import { View, TouchableOpacity, Text } from "react-native";
 import { Text as TextPaper } from "react-native-paper";
 import { FontAwesome } from "@expo/vector-icons";
-import * as Location from 'expo-location';
+import * as Location from "expo-location";
 
 import notFoundImage from "@image/notFound.png";
 import styles from "./styles";
 import { Colors } from "@constants/Colors";
 import ButtonConfirm from "@components/ButtonConfirm";
+import ModalNotification from "@components/ModalNotification";
 
 export default function BaterPonto({ navigation, route }) {
     useEffect(() => {
         (async () => {
             let { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== 'granted') {
+            if (status !== "granted") {
                 navigation.navigate("Login");
                 return;
             }
         })();
     }, []);
 
-    const [photo, setPhoto] = useState(
-        route.params?.photoData ?? notFoundImage
-    );
+    const [photo, setPhoto] = useState(route.params?.photoData ?? notFoundImage);
     const [dataTime, setDataTime] = useState(new Date());
 
     useEffect(() => {
@@ -72,12 +71,12 @@ export default function BaterPonto({ navigation, route }) {
 
     async function handleBaterPonto() {
         setPhoto(notFoundImage);
-        let timeFull = dataTime.toTimeString()
+        let timeFull = dataTime.toTimeString();
         let location = await Location.getCurrentPositionAsync({});
         console.log("Batendo Ponto");
-        console.log(location)
-        console.log(timeFull)
-        console.log(photo)
+        console.log(location);
+        console.log(timeFull);
+        console.log(photo);
     }
 
     return (
@@ -134,6 +133,7 @@ export default function BaterPonto({ navigation, route }) {
                     onPress={handleBaterPonto}
                 ></ButtonConfirm>
             </View>
+            <ModalNotification></ModalNotification>
         </View>
     );
 }
