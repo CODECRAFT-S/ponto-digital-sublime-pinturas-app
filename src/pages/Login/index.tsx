@@ -39,17 +39,41 @@ export default function Login({ navigation }) {
 
     async function requestAuth() {
         try {
-            const result = await axios.get(apiUrl(`/auth/${login}/${password}`), {
-                headers: {
-                    Authorization: KeyApi,
-                },
-            });
-            if(result.status === 200) {
+            const result = await axios.get(
+                apiUrl(`/auth/${login}/${password}`),
+                {
+                    headers: {
+                        Authorization: KeyApi,
+                    },
+                }
+            );
+            if (result.status === 200) {
                 navigation.navigate("Home");
             }
-        }
-        catch (error) {
-            
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                if (error.response) {
+                    const data = error.response.data;
+                    // console.log(data);
+                    if (
+                        data.data ===
+                        "Usuário não encontrado ou senha incorreta"
+                    ) {
+                        setModalMessage(
+                            "Usuário não encontrado ou senha incorreta!"
+                        );
+                        setModalStatus("Fail");
+                        setModalVisible(true);
+                    }
+                    else {
+                        setModalMessage(
+                            "Algo deu Errado, Tente Novamente mais tarde!"
+                        );
+                        setModalStatus("Alert");
+                        setModalVisible(true);
+                    }
+                }
+            }
         }
     }
 
@@ -144,14 +168,14 @@ export default function Login({ navigation }) {
                         }
                     />
                 </View>
-                <ModalNotification
-                    mensagem={modalMessage}
-                    status={modalStatus}
-                    timeVisable={3000}
-                    visible={modalVisible}
-                    onDismiss={() => setModalVisible(false)}
-                />
             </View>
+            <ModalNotification
+                mensagem={modalMessage}
+                status={modalStatus}
+                timeVisable={3000}
+                visible={modalVisible}
+                onDismiss={() => setModalVisible(false)}
+            />
         </Pressable>
     );
 }

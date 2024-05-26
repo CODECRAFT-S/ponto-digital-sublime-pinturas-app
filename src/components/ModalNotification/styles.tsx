@@ -15,6 +15,7 @@ const styles = StyleSheet.create({
     },
     textModal: {
         color: Colors.text.white,
+        textAlign: "center",
     },
 });
 

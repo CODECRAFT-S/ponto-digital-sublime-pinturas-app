@@ -24,7 +24,9 @@ export default function BaterPonto({ navigation, route }) {
         })();
     }, []);
 
-    const [photo, setPhoto] = useState(route.params?.photoData ?? notFoundImage);
+    const [photo, setPhoto] = useState(
+        route.params?.photoData ?? notFoundImage
+    );
     const [dataTime, setDataTime] = useState(new Date());
 
     const [modalVisible, setModalVisible] = useState(false);
