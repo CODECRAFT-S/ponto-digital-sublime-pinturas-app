@@ -4,6 +4,8 @@ import { View, TouchableOpacity, Text } from "react-native";
 import { Text as TextPaper } from "react-native-paper";
 import { FontAwesome } from "@expo/vector-icons";
 import * as Location from "expo-location";
+import axios, { AxiosError } from "axios";
+import * as SecureStore from "expo-secure-store";
 
 import notFoundImage from "@image/notFound.png";
 import styles from "./styles";
@@ -14,6 +16,26 @@ import ModalNotification from "@components/ModalNotification";
 type ModalStatus = "Success" | "Fail" | "Alert";
 
 export default function BaterPonto({ navigation, route }) {
+    let [username, setUsername] = useState("");
+    let [token, setToken] = useState("");
+    useEffect(() => {
+        const name = SecureStore.getItemAsync("USERNAME")
+            .then((e) => {
+                return e;
+            })
+            .catch((e) => {
+                navigation.navigate("Login");
+            });
+        const token = SecureStore.getItemAsync("TOKEN_USER")
+            .then((e) => {
+                return e;
+            })
+            .catch((e) => {
+                navigation.navigate("Login");
+            });
+        setUsername(name);
+    }, []);
+
     useEffect(() => {
         (async () => {
             let { status } = await Location.requestForegroundPermissionsAsync();
@@ -69,7 +91,8 @@ export default function BaterPonto({ navigation, route }) {
     }
 
     function logout() {
-        console.log("Logout");
+        SecureStore.deleteItemAsync("TOKEN_USER");
+        SecureStore.deleteItemAsync("USERNAME");
         navigation.navigate("Login");
     }
 
@@ -111,7 +134,7 @@ export default function BaterPonto({ navigation, route }) {
                         variant="titleMedium"
                         style={[styles.textUser, { fontWeight: "bold" }]}
                     >
-                        Nome Do Funcionário
+                        {username}
                     </TextPaper>
                 </View>
                 <TouchableOpacity onPress={logout}>

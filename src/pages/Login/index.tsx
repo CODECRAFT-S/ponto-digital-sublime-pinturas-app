@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Image } from "expo-image";
 import { View, Keyboard, Pressable } from "react-native";
 import { Button, Text, TextInput } from "react-native-paper";
 import { AntDesign } from "@expo/vector-icons";
 import { Entypo } from "@expo/vector-icons";
 import axios, { AxiosError } from "axios";
+import * as SecureStore from 'expo-secure-store';
 
 import styles from "./styles";
 import logoSP from "@image/logo.svg";
@@ -17,11 +18,30 @@ import ModalNotification from "@components/ModalNotification";
 
 type ModalStatus = "Success" | "Fail" | "Alert";
 
+interface UserDetails {
+    status: boolean,
+    data: {
+        user: string,
+        userid: number,
+        username: string,
+        usermail: string,
+        token: string
+    }
+}
+
 export default function Login({ navigation }) {
-    const [login, setLogin] = useState<string>("73528282061");
-    const [password, setPassword] = useState<string>(
-        "064fDc11a37B41685a9763869e35c64b"
-    );
+
+    useEffect(()=>{
+        SecureStore.getItemAsync("TOKEN_USER").then((e)=>{
+            if(e !== null){
+                navigation.navigate("Home")
+            }
+        })
+
+    }, [])
+
+    const [login, setLogin] = useState<string>("");
+    const [password, setPassword] = useState<string>("");
     const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
     const [submit, setSubmit] = useState<boolean>(false);
 
@@ -31,6 +51,7 @@ export default function Login({ navigation }) {
 
     async function handleLogin() {
         setSubmit(true);
+        setPassword("");
         if (login && password) {
             await requestAuth();
         }
@@ -48,6 +69,9 @@ export default function Login({ navigation }) {
                 }
             );
             if (result.status === 200) {
+                const data: UserDetails = result.data
+                await SecureStore.setItemAsync("TOKEN_USER", data.data.token)
+                await SecureStore.setItemAsync("USERNAME", data.data.username)
                 navigation.navigate("Home");
             }
         } catch (error) {
