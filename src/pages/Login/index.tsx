@@ -10,7 +10,7 @@ import * as SecureStore from 'expo-secure-store';
 import styles from "./styles";
 import logoSP from "@image/logo.svg";
 import { apiUrl } from "@scripts/apiUrl";
-import { KeyApiLogin } from "@constants/KeyApi";
+import { KeyApi } from "@constants/KeyApi";
 import { Colors } from "@constants/Colors";
 
 import ButtonConfirm from "@components/ButtonConfirm";
@@ -64,7 +64,7 @@ export default function Login({ navigation }) {
                 apiUrl(`/auth/${login}/${password}`),
                 {
                     headers: {
-                        Authorization: KeyApiLogin,
+                        Authorization: KeyApi,
                     },
                 }
             );
