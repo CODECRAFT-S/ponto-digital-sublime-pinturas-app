@@ -12,6 +12,7 @@ import styles from "./styles";
 import { Colors } from "@constants/Colors";
 import ButtonConfirm from "@components/ButtonConfirm";
 import ModalNotification from "@components/ModalNotification";
+import { apiUrl } from "@scripts/apiUrl";
 
 type ModalStatus = "Success" | "Fail" | "Alert";
 
@@ -99,14 +100,35 @@ export default function BaterPonto({ navigation, route }) {
     function handleCapturePhoto() {
         navigation.navigate("CapturePhoto");
     }
+    
+    async function handleWorkPoint() {
+        // let location = await Location.getCurrentPositionAsync({});
+        const [lat, setLat] = useState("-7.527434828863182") 
+        const [log, setLog] = useState("-46.04329892365424") 
+        
+        try {
+            const result = await axios.get(apiUrl("/workpoint"), {
+                data: {
+                    lat, 
+                    log
+                }
+
+            })
+            console.log(result)
+        } catch (error) {
+            console.log(error)
+        }
+
+    }
 
     async function handleBaterPonto() {
+
         setPhoto(notFoundImage);
         let timeFull = dataTime.toTimeString();
         try {
-            let location = await Location.getCurrentPositionAsync({});
+            
             console.log("Batendo Ponto");
-            console.log(location);
+            await handleWorkPoint()
             console.log(timeFull);
             console.log(photo);
 
