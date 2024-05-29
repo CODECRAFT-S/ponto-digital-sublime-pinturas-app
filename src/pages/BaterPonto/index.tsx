@@ -144,15 +144,19 @@ export default function BaterPonto({ navigation, route }) {
     setPhoto(notFoundImage);
     let timeFull = dataTime.toTimeString();
     try {
-      console.log("Batendo Ponto");
       const workPoint = await handleWorkPoint();
-      if(Array.isArray(workPoint.data))
-      console.log(workPoint)
-      console.log(timeFull);
-      console.log(photo);
-
-      setModalMessage("Ponto registrado com sucesso!");
-      setModalStatus("Success");
+      if(Array.isArray(workPoint.data)){
+        setModalMessage("Não tem Ponto de Trabalho na sua Área.");
+        setModalStatus("Alert");
+      } else {
+        console.log("Batendo Ponto");
+        console.log(workPoint)
+        console.log(timeFull);
+        console.log(photo);
+  
+        setModalMessage("Ponto registrado com sucesso.");
+        setModalStatus("Success");
+      }
     } catch (error) {
       console.log(error);
       setModalMessage("Falha ao registrar o ponto. Tente novamente.");
