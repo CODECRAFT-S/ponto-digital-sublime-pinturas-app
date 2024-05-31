@@ -17,7 +17,7 @@ export default function CapturePhoto({ navigation, route }) {
         if (camRef.current) {
             const options = {
                 quality: 0.5,
-                // base64: true,
+                base64: true,
             };
             const data = await camRef.current.takePictureAsync(options);
             console.log(data);

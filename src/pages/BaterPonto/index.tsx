@@ -68,6 +68,8 @@ export default function BaterPonto({ navigation, route }) {
   const [modalMessage, setModalMessage] = useState("");
   const [modalStatus, setModalStatus] = useState<ModalStatus>("Success");
 
+  const padZero = (num) => (num < 10 ? `0${num}` : num);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setDataTime(new Date());
@@ -77,13 +79,13 @@ export default function BaterPonto({ navigation, route }) {
   }, []);
 
   function formatedTime() {
-    const hours = String(dataTime.getHours()).padStart(2, "0");
-    const minutes = String(dataTime.getMinutes()).padStart(2, "0");
+    const hours = padZero(dataTime.getHours())
+    const minutes = padZero(dataTime.getMinutes())
     return `${hours}:${minutes}`;
   }
 
   function formatedDate() {
-    const day = dataTime.getDate();
+    const day = padZero(dataTime.getDate())
     const monthNames = [
       "Janeiro",
       "Fevereiro",
@@ -113,11 +115,7 @@ export default function BaterPonto({ navigation, route }) {
     navigation.navigate("CapturePhoto");
   }
 
-  async function handleWorkPoint() {
-    let location = await Location.getCurrentPositionAsync({});
-    const latitude = "-7.527434828863182";
-    const longitude = "-46.04329892365424";
-
+  async function handleWorkPoint(latitude: string, longitude: string) {
     try {
       const result = await axios.get(apiUrl("/workpoint"), {
         headers: {
@@ -140,11 +138,20 @@ export default function BaterPonto({ navigation, route }) {
     }
   }
 
+  async function handleRegisterPoint() {
+    
+  }
+
   async function handleBaterPonto() {
     setPhoto(notFoundImage);
-    let timeFull = dataTime.toTimeString();
+    let timeFull = `${padZero(dataTime.getFullYear())}-${padZero(dataTime.getMonth()+1)}-${padZero(dataTime.getDay())} ${padZero(dataTime.getHours())}:${padZero(dataTime.getMinutes())}:${padZero(dataTime.getSeconds())}`
+    let location = await Location.getCurrentPositionAsync({});
+    // const latitude = location.coords.latitude
+    // const longitude = location.coords.longitude
+    const latitude = "-7.527434828863182";
+    const longitude = "-46.04329892365424";
     try {
-      const workPoint = await handleWorkPoint();
+      const workPoint = await handleWorkPoint(latitude, longitude);
       if(Array.isArray(workPoint.data)){
         setModalMessage("Não tem Ponto de Trabalho na sua Área.");
         setModalStatus("Alert");
