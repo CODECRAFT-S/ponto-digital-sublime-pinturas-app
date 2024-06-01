@@ -146,10 +146,10 @@ export default function BaterPonto({ navigation, route }) {
     setPhoto(notFoundImage);
     let timeFull = `${padZero(dataTime.getFullYear())}-${padZero(dataTime.getMonth()+1)}-${padZero(dataTime.getDay())} ${padZero(dataTime.getHours())}:${padZero(dataTime.getMinutes())}:${padZero(dataTime.getSeconds())}`
     let location = await Location.getCurrentPositionAsync({});
-    // const latitude = location.coords.latitude
-    // const longitude = location.coords.longitude
-    const latitude = "-7.527434828863182";
-    const longitude = "-46.04329892365424";
+    const latitude = String(location.coords.latitude)
+    const longitude = String(location.coords.longitude)
+    // const latitude = "-7.527434828863182";
+    // const longitude = "-46.04329892365424";
     try {
       const workPoint = await handleWorkPoint(latitude, longitude);
       if(Array.isArray(workPoint.data)){
