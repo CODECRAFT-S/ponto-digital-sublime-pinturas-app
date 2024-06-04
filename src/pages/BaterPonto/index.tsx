@@ -207,10 +207,10 @@ export default function BaterPonto({ navigation, route }) {
             dataTime.getHours()
         )}:${padZero(dataTime.getMinutes())}:${padZero(dataTime.getSeconds())}`;
         let location = await Location.getCurrentPositionAsync({});
-        // const latitude = String(location.coords.latitude);
-        // const longitude = String(location.coords.longitude);
-        const latitude = "-7.527434828863182";
-        const longitude = "-46.04329892365424";
+        const latitude = String(location.coords.latitude);
+        const longitude = String(location.coords.longitude);
+        // const latitude = "-7.527434828863182";
+        // const longitude = "-46.04329892365424";
         try {
             const workPoint: WorkPointProps = await handleWorkPoint(
                 latitude,

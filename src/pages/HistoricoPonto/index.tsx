@@ -33,26 +33,15 @@ export default function HistoricoPonto({ navigation }) {
     const [modalStatus, setModalStatus] = useState<ModalStatus>("Success");
 
     let [token, setToken] = useState("");
-    useEffect(() => {
-        const token = SecureStore.getItemAsync("TOKEN_USER")
-            .then((e) => {
-                return e;
-            })
-            .catch((e) => {
-                navigation.navigate("Login");
-            });
-        setToken(token);
-    }, []);
 
     async function requestListPoints() {
         try {
             const result = await axios.get(apiUrl("/point/list"), {
                 headers: {
                     Authorization:
-                        "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiNzM1MjgyODIwNjEiLCJ1c2VyaWQiOjMsInVzZXJuYW1lIjoiSm9zXHUwMGU5IGRhIFNpbHZhIiwidXNlcm1haWwiOiJqb3NlQGdtYWlsLmNvbSIsImV4cGlyZXMiOjE3MTc3Njk4MTJ9.Aue35xz2Jrxb5SUCAn1s08teCUKf0FBtfShh6Su_4RY",
+                        `Bearer ${token}`,
                 },
             });
-            // console.log(result.data.data);
             setOnlinePoint(result.data.data);
         } catch (error) {
             setModalMessage(
@@ -64,8 +53,27 @@ export default function HistoricoPonto({ navigation }) {
     }
 
     useEffect(() => {
-        requestListPoints();
+        const fetchData = async () => {
+            try {
+                const token = await SecureStore.getItemAsync("TOKEN_USER");
+                if (!token) {
+                    navigation.navigate("Login");
+                } else {
+                    await setToken(token);
+                }
+            } catch (e) {
+                navigation.navigate("Login");
+            }
+            
+        };
+        fetchData();
     }, []);
+
+    useEffect(()=>{
+        if(token) {
+            requestListPoints();
+        }
+    }, [token])
 
     return (
         <View style={styles.container}>
