@@ -20,7 +20,6 @@ export default function CapturePhoto({ navigation, route }) {
                 // base64: true,
             };
             const data = await camRef.current.takePictureAsync(options);
-            console.log(data);
             route.params?.photoData(data)
             navigation.reset({
                 index: 0,

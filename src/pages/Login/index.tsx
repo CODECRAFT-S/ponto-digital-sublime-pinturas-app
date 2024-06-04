@@ -78,7 +78,6 @@ export default function Login({ navigation }) {
             if (axios.isAxiosError(error)) {
                 if (error.response) {
                     const data = error.response.data;
-                    // console.log(data);
                     if (
                         data.data ===
                         "Usuário não encontrado ou senha incorreta"
