@@ -15,6 +15,7 @@ import ModalNotification from "@components/ModalNotification";
 import { apiUrl } from "@scripts/apiUrl";
 import { KeyApi } from "@constants/KeyApi";
 
+
 interface WorkPointProps {
   status: string;
   data:
@@ -26,6 +27,18 @@ interface WorkPointProps {
         distance: Number;
       }
     | [];
+}
+
+interface FormData {
+  workPointId: string;
+  latitude: string;
+  longitude: string;
+  datetime: string;
+  photo: {
+    uri: string;
+    name: string;
+    type: string;
+  };
 }
 
 type ModalStatus = "Success" | "Fail" | "Alert";
@@ -49,6 +62,7 @@ export default function BaterPonto({ navigation, route }) {
         navigation.navigate("Login");
       });
     setUsername(name);
+    setToken(token);
   }, []);
 
   useEffect(() => {
@@ -138,10 +152,51 @@ export default function BaterPonto({ navigation, route }) {
     }
   }
 
-  async function handleRegisterPoint() {
-    
-  }
 
+  async function handleRegisterPoint(formData: FormData) {
+    try {
+     
+      const formDataToSend = new FormData();
+      formDataToSend.append("workPointId", formData.workPointId);
+      formDataToSend.append("latitude", formData.latitude);
+      formDataToSend.append("longitude", formData.longitude);
+      formDataToSend.append("datetime", formData.datetime);
+      formDataToSend.append("photo", photo.uri)
+
+      const response = await axios.post(apiUrl("/point/save"), formDataToSend, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: token,
+        },
+      });
+  
+      if (response.status === 200) {
+        setModalMessage("Ponto registrado com sucesso.");
+        setModalStatus("Success");
+      } else {
+        setModalMessage("Falha no servidor ao registrar o ponto.");
+        setModalStatus("Fail");
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error("Erro ao registrar o ponto:", error);
+        if (error.response) {
+          setModalMessage(error.response.data.message || "Falha na API ao registrar o ponto.");
+        } else if (error.request) {
+          setModalMessage("Sem resposta do servidor ao registrar o ponto.");
+        } else {
+          setModalMessage("Erro inesperado ao registrar o ponto.");
+        }
+      } else {
+        console.error("Erro inesperado ao registrar o ponto:", error);
+        setModalMessage("Erro inesperado ao registrar o ponto.");
+      }
+      setModalStatus("Fail");
+    } finally {
+      setModalVisible(true);
+    }
+  }
+  
   async function handleBaterPonto() {
     setPhoto(notFoundImage);
     let timeFull = `${padZero(dataTime.getFullYear())}-${padZero(dataTime.getMonth()+1)}-${padZero(dataTime.getDay())} ${padZero(dataTime.getHours())}:${padZero(dataTime.getMinutes())}:${padZero(dataTime.getSeconds())}`
@@ -171,6 +226,7 @@ export default function BaterPonto({ navigation, route }) {
     }
     setModalVisible(true);
   }
+
 
   return (
     <View style={styles.container}>
