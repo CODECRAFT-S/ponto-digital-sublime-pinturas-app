@@ -9,10 +9,11 @@ import * as SecureStore from "expo-secure-store";
 import { apiUrl } from "@scripts/apiUrl";
 
 import ModalNotification from "@components/ModalNotification";
+import { checkInternetConnection } from "@scripts/checkInternetConnection";
 
 type ModalStatus = "Success" | "Fail" | "Alert";
 
-interface Point {
+interface PointProps {
     id: Number;
     system_user_id: Number;
     work_point_id: Number;
@@ -24,9 +25,17 @@ interface Point {
     deleted_at: String | null;
 }
 
+interface PointOfflineProps {
+    latitude: string;
+    longitude: string;
+    datetime: string;
+    file: string;
+}
+
 export default function HistoricoPonto({ navigation }) {
     const [refreshing, setRefreshing] = useState(false);
-    const [onlinePoint, setOnlinePoint] = useState<Point[]>();
+    const [pointsOnline, setPointsOnline] = useState<PointProps[]>();
+    const [pointsOffline, setPointsOffline] = useState<PointOfflineProps[]>();
 
     const [modalVisible, setModalVisible] = useState(false);
     const [modalMessage, setModalMessage] = useState("");
@@ -36,17 +45,16 @@ export default function HistoricoPonto({ navigation }) {
 
     async function requestListPoints() {
         try {
-            const result = await axios.get(apiUrl("/point/list"), {
-                headers: {
-                    Authorization:
-                        `Bearer ${token}`,
-                },
-            });
-            setOnlinePoint(result.data.data);
+            if (await checkInternetConnection()) {
+                const result = await axios.get(apiUrl("/point/list"), {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                setPointsOnline(result.data.data);
+            }
         } catch (error) {
-            setModalMessage(
-                "Algo deu Errado, Tente Novamente mais tarde!"
-            );
+            setModalMessage("Algo deu Errado, Tente Novamente mais tarde!");
             setModalStatus("Fail");
             setModalVisible(true);
         }
@@ -56,24 +64,27 @@ export default function HistoricoPonto({ navigation }) {
         const fetchData = async () => {
             try {
                 const token = await SecureStore.getItemAsync("TOKEN_USER");
-                if (!token) {
+                const pointsOffline = await SecureStore.getItemAsync(
+                    "POINT_OFFLINE"
+                );
+                if (!token && !pointsOffline) {
                     navigation.navigate("Login");
                 } else {
                     await setToken(token);
+                    await setPointsOffline(JSON.parse(pointsOffline));
                 }
             } catch (e) {
                 navigation.navigate("Login");
             }
-            
         };
         fetchData();
     }, []);
 
-    useEffect(()=>{
-        if(token) {
+    useEffect(() => {
+        if (token) {
             requestListPoints();
         }
-    }, [token])
+    }, [token]);
 
     return (
         <View style={styles.container}>
@@ -92,11 +103,20 @@ export default function HistoricoPonto({ navigation }) {
                     />
                 }
             >
-                {/* <PontoBox data={"07/10/2024"} time={"08:12"} status={false} />
-        <PontoBox data={"06/10/2024"} time={"20:12"} status={false} />
-        <PontoBox data={"06/10/2024"} time={"16:12"} status={true} /> */}
+                {pointsOffline?.map((point, index) => {
+                    const formatedTime = point.datetime.split(" ");
+                    const data = formatedTime[0].split("-");
+                    return (
+                        <PontoBox
+                            key={index}
+                            data={`${data[2]}/${data[1]}/${data[0]}`}
+                            time={formatedTime[1]}
+                            status={false}
+                        />
+                    );
+                })}
 
-                {onlinePoint?.map((point, index) => {
+                {pointsOnline?.map((point, index) => {
                     const formatedTime = point.datetime.split(" ");
                     const data = formatedTime[0].split("-");
                     return (

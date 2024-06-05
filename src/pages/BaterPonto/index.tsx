@@ -14,6 +14,15 @@ import ButtonConfirm from "@components/ButtonConfirm";
 import ModalNotification from "@components/ModalNotification";
 import { apiUrl } from "@scripts/apiUrl";
 import { KeyApi } from "@constants/KeyApi";
+import { checkInternetConnection } from "@scripts/checkInternetConnection";
+import { saveImageLocally } from "@scripts/handlerImage";
+
+interface PointOfflineProps {
+    latitude: string;
+    longitude: string;
+    datetime: string;
+    file: string;
+}
 
 interface WorkPointProps {
     status: string;
@@ -28,7 +37,7 @@ interface WorkPointProps {
         | [];
 }
 
-interface FormData {
+interface FormDataProps {
     workPointId: string;
     latitude: string;
     longitude: string;
@@ -126,6 +135,7 @@ export default function BaterPonto({ navigation, route }) {
     function logout() {
         SecureStore.deleteItemAsync("TOKEN_USER");
         SecureStore.deleteItemAsync("USERNAME");
+        SecureStore.deleteItemAsync("POINT_OFFLINE");
         navigation.navigate("Login");
     }
 
@@ -158,7 +168,7 @@ export default function BaterPonto({ navigation, route }) {
         }
     }
 
-    async function handleRegisterPoint(formData: FormData) {
+    async function handleRegisterPoint(formData: FormDataProps) {
         try {
             const file = {
                 uri: photo, 
@@ -185,8 +195,6 @@ export default function BaterPonto({ navigation, route }) {
             );
 
             if (response.status === 200) {
-                setModalMessage("Ponto registrado com sucesso.");
-                setModalStatus("Success");
                 return response;
             } else {
                 throw new Error();
@@ -198,6 +206,21 @@ export default function BaterPonto({ navigation, route }) {
             );
         }
     }
+
+    async function handleRegisterPointOffline(pointOffline: PointOfflineProps) {
+        try {
+            const storedPoints = await SecureStore.getItemAsync("POINT_OFFLINE");
+            const pointsOffline: PointOfflineProps[] = storedPoints ? JSON.parse(storedPoints) : [];
+            pointsOffline.unshift(pointOffline);
+            await SecureStore.setItemAsync("POINT_OFFLINE", JSON.stringify(pointsOffline));
+        } catch (error) {
+            throw new CustomError(
+                "Erro inesperado ao registrar o ponto.",
+                "Error_Register_Point"
+            );
+        }
+    }
+    
 
     async function handleBaterPonto() {
         setSubmit(true);
@@ -212,22 +235,30 @@ export default function BaterPonto({ navigation, route }) {
         const latitude = "-7.527434828863182";
         const longitude = "-46.04329892365424";
         try {
-            const workPoint: WorkPointProps = await handleWorkPoint(
-                latitude,
-                longitude
-            );
-            if (Array.isArray(workPoint.data)) {
-                setModalMessage("Não tem Ponto de Trabalho na sua Área.");
-                setModalStatus("Alert");
-            } else {
-                const result = await handleRegisterPoint({
-                    workPointId: String(workPoint.data.id),
+            if(await checkInternetConnection() && false) {
+                const workPoint: WorkPointProps = await handleWorkPoint(
                     latitude,
-                    longitude,
-                    datetime: timeFull,
-                    file: photo,
-                });
+                    longitude
+                );
+                if (Array.isArray(workPoint.data)) {
+                    setModalMessage("Não tem Ponto de Trabalho na sua Área.");
+                    setModalStatus("Alert");
+                    return
+                } else {
+                    await handleRegisterPoint({
+                        workPointId: String(workPoint.data.id),
+                        latitude,
+                        longitude,
+                        datetime: timeFull,
+                        file: photo,
+                    });
+                }
                 setModalMessage("Ponto registrado com sucesso.");
+                setModalStatus("Success");
+            }
+            else {
+                await handleRegisterPointOffline({datetime: timeFull, latitude, longitude, file: await saveImageLocally(photo, `${timeFull}-${latitude}_${longitude}`)});
+                setModalMessage("Ponto registrado Localmente. \nSicronize os dados!");
                 setModalStatus("Success");
             }
         } catch (error) {
@@ -236,7 +267,7 @@ export default function BaterPonto({ navigation, route }) {
                 setModalMessage(error.message);
             } else {
                 setModalMessage(
-                    "Algo inesperado aconteceu. Contate o Suporte ou Tente Novamente!."
+                    "Algo inesperado aconteceu. \nContate o Suporte ou Tente Novamente!."
                 );
             }
         }

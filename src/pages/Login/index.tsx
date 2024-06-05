@@ -72,6 +72,7 @@ export default function Login({ navigation }) {
                 const data: UserDetails = result.data
                 await SecureStore.setItemAsync("TOKEN_USER", data.data.token)
                 await SecureStore.setItemAsync("USERNAME", data.data.username)
+                await SecureStore.setItemAsync("POINT_OFFLINE", JSON.stringify([]))
                 navigation.navigate("Home");
             }
         } catch (error) {
