@@ -4,7 +4,6 @@ import { View, TouchableOpacity, Text } from "react-native";
 import { Text as TextPaper } from "react-native-paper";
 import { FontAwesome } from "@expo/vector-icons";
 import * as Location from "expo-location";
-import axios, { AxiosError } from "axios";
 import * as SecureStore from "expo-secure-store";
 
 import notFoundImage from "@image/notFound.png";
@@ -12,45 +11,9 @@ import styles from "./styles";
 import { Colors } from "@constants/Colors";
 import ButtonConfirm from "@components/ButtonConfirm";
 import ModalNotification from "@components/ModalNotification";
-import { apiUrl } from "@scripts/apiUrl";
-import { KeyApi } from "@constants/KeyApi";
 import { checkInternetConnection } from "@scripts/checkInternetConnection";
 import { saveImageLocally } from "@scripts/handlerImage";
-
-interface PointOfflineProps {
-    latitude: string;
-    longitude: string;
-    datetime: string;
-    file: string;
-}
-
-interface WorkPointProps {
-    status: string;
-    data:
-        | {
-              id: Number;
-              name: string;
-              latitude: string;
-              longitude: string;
-              distance: Number;
-          }
-        | [];
-}
-
-interface FormDataProps {
-    workPointId: string;
-    latitude: string;
-    longitude: string;
-    datetime: string;
-    file: string;
-}
-
-class CustomError extends Error {
-    constructor(message: string, name: string) {
-        super(message);
-        this.name = name;
-    }
-}
+import { handleRegisterPoint, handleWorkPoint } from "@scripts/savePoint"
 
 type ModalStatus = "Success" | "Fail" | "Alert";
 
@@ -143,70 +106,6 @@ export default function BaterPonto({ navigation, route }) {
         navigation.navigate("CapturePhoto");
     }
 
-    async function handleWorkPoint(latitude: string, longitude: string) {
-        try {
-            const result = await axios.get(apiUrl("/workpoint"), {
-                headers: {
-                    Authorization: KeyApi,
-                },
-                params: {
-                    lat: latitude,
-                    log: longitude,
-                },
-            });
-            if (result.status === 200) {
-                const data: WorkPointProps = result.data;
-                return data;
-            } else {
-                throw new Error();
-            }
-        } catch (error) {
-            throw new CustomError(
-                "Erro inesperado ao encontrar o ponto.",
-                "Error_Search_Point"
-            );
-        }
-    }
-
-    async function handleRegisterPoint(formData: FormDataProps) {
-        try {
-            const file = {
-                uri: photo, 
-                name: `${formData.datetime}-${formData.latitude}_${formData.longitude}`, // e.g. 'image123.jpg',
-                type: "image/jpeg",
-            };
-
-            const formDataToSend = new FormData();
-            formDataToSend.append("work_point_id", formData.workPointId);
-            formDataToSend.append("latitude", formData.latitude);
-            formDataToSend.append("longitude", formData.longitude);
-            formDataToSend.append("datetime", formData.datetime);
-            formDataToSend.append("file", file);
-
-            const response = await axios.post(
-                apiUrl("/point/save"),
-                formDataToSend,
-                {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-
-            if (response.status === 200) {
-                return response;
-            } else {
-                throw new Error();
-            }
-        } catch (error) {
-            throw new CustomError(
-                "Erro inesperado ao registrar o ponto.",
-                "Error_Register_Point"
-            );
-        }
-    }
-
     async function handleRegisterPointOffline(pointOffline: PointOfflineProps) {
         try {
             const storedPoints = await SecureStore.getItemAsync("POINT_OFFLINE");
@@ -235,7 +134,7 @@ export default function BaterPonto({ navigation, route }) {
         const latitude = "-7.527434828863182";
         const longitude = "-46.04329892365424";
         try {
-            if(await checkInternetConnection() && false) {
+            if(await checkInternetConnection()) {
                 const workPoint: WorkPointProps = await handleWorkPoint(
                     latitude,
                     longitude
@@ -243,7 +142,6 @@ export default function BaterPonto({ navigation, route }) {
                 if (Array.isArray(workPoint.data)) {
                     setModalMessage("Não tem Ponto de Trabalho na sua Área.");
                     setModalStatus("Alert");
-                    return
                 } else {
                     await handleRegisterPoint({
                         workPointId: String(workPoint.data.id),
@@ -251,10 +149,10 @@ export default function BaterPonto({ navigation, route }) {
                         longitude,
                         datetime: timeFull,
                         file: photo,
-                    });
+                    }, token);
+                    setModalMessage("Ponto registrado com sucesso.");
+                    setModalStatus("Success");
                 }
-                setModalMessage("Ponto registrado com sucesso.");
-                setModalStatus("Success");
             }
             else {
                 await handleRegisterPointOffline({datetime: timeFull, latitude, longitude, file: await saveImageLocally(photo, `${timeFull}-${latitude}_${longitude}`)});
@@ -263,7 +161,7 @@ export default function BaterPonto({ navigation, route }) {
             }
         } catch (error) {
             setModalStatus("Fail");
-            if (error instanceof Error) {
+            if (error instanceof CustomError) {
                 setModalMessage(error.message);
             } else {
                 setModalMessage(

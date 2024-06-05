@@ -18,17 +18,6 @@ import ModalNotification from "@components/ModalNotification";
 
 type ModalStatus = "Success" | "Fail" | "Alert";
 
-interface UserDetails {
-    status: boolean,
-    data: {
-        user: string,
-        userid: number,
-        username: string,
-        usermail: string,
-        token: string
-    }
-}
-
 export default function Login({ navigation }) {
 
     useEffect(()=>{

@@ -13,25 +13,6 @@ import { checkInternetConnection } from "@scripts/checkInternetConnection";
 
 type ModalStatus = "Success" | "Fail" | "Alert";
 
-interface PointProps {
-    id: Number;
-    system_user_id: Number;
-    work_point_id: Number;
-    latitude: String;
-    longitude: String;
-    datetime: String;
-    file: String;
-    created_at: String;
-    deleted_at: String | null;
-}
-
-interface PointOfflineProps {
-    latitude: string;
-    longitude: string;
-    datetime: string;
-    file: string;
-}
-
 export default function HistoricoPonto({ navigation }) {
     const [refreshing, setRefreshing] = useState(false);
     const [pointsOnline, setPointsOnline] = useState<PointProps[]>();
@@ -45,7 +26,7 @@ export default function HistoricoPonto({ navigation }) {
 
     async function requestListPoints() {
         try {
-            if (await checkInternetConnection()) {
+            if(await checkInternetConnection()) {
                 const result = await axios.get(apiUrl("/point/list"), {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -64,14 +45,14 @@ export default function HistoricoPonto({ navigation }) {
         const fetchData = async () => {
             try {
                 const token = await SecureStore.getItemAsync("TOKEN_USER");
-                const pointsOffline = await SecureStore.getItemAsync(
+                const points = await SecureStore.getItemAsync(
                     "POINT_OFFLINE"
                 );
-                if (!token && !pointsOffline) {
+                if (!token && !points) {
                     navigation.navigate("Login");
                 } else {
                     await setToken(token);
-                    await setPointsOffline(JSON.parse(pointsOffline));
+                    await setPointsOffline(JSON.parse(points));
                 }
             } catch (e) {
                 navigation.navigate("Login");
@@ -121,7 +102,7 @@ export default function HistoricoPonto({ navigation }) {
                     const data = formatedTime[0].split("-");
                     return (
                         <PontoBox
-                            key={index}
+                            key={String(point.id)}
                             data={`${data[2]}/${data[1]}/${data[0]}`}
                             time={formatedTime[1]}
                             status={true}
