@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Image } from "expo-image";
-import { View, TouchableOpacity, Text } from "react-native";
+import { View, TouchableOpacity, Text, BackHandler, Alert } from "react-native";
 import { Text as TextPaper } from "react-native-paper";
 import { FontAwesome } from "@expo/vector-icons";
 import * as Location from "expo-location";
@@ -12,8 +12,9 @@ import { Colors } from "@constants/Colors";
 import ButtonConfirm from "@components/ButtonConfirm";
 import ModalNotification from "@components/ModalNotification";
 import { checkInternetConnection } from "@scripts/checkInternetConnection";
-import { saveImageLocally } from "@scripts/handlerImage";
-import { handleRegisterPoint, handleWorkPoint } from "@scripts/savePoint"
+import { deleteImageLocally, saveImageLocally } from "@scripts/handlerImage";
+import { handleRegisterPoint, handleWorkPoint } from "@scripts/savePoint";
+import CustomError from "@constants/Error";
 
 type ModalStatus = "Success" | "Fail" | "Alert";
 
@@ -24,18 +25,44 @@ export default function BaterPonto({ navigation, route }) {
         const fetchData = async () => {
             try {
                 const name = await SecureStore.getItemAsync("USERNAME");
-                const token = await SecureStore.getItemAsync("TOKEN_USER");
-                if (!name || !token) {
+                const tokenStore = await SecureStore.getItemAsync("TOKEN_USER");
+                if (!name || !tokenStore) {
                     navigation.navigate("Login");
                 } else {
                     setUsername(name);
-                    setToken(token);
+                    setToken(tokenStore);
                 }
             } catch (e) {
                 navigation.navigate("Login");
             }
         };
         fetchData();
+
+        const backAction = () => {
+            if (navigation.canGoBack()) {
+                Alert.alert(
+                    "Confirmar saída",
+                    "Você realmente quer sair?",
+                    [
+                        {
+                            text: "Cancelar",
+                            onPress: () => null,
+                            style: "cancel"
+                        },
+                        { text: "SIM", onPress: () => BackHandler.exitApp() }
+                    ]
+                );
+                return true;
+            }
+            return false;
+        };
+
+        const backHandler = BackHandler.addEventListener(
+            "hardwareBackPress",
+            backAction
+        );
+
+        return () => backHandler.remove();
     }, []);
 
     useEffect(() => {
@@ -108,10 +135,17 @@ export default function BaterPonto({ navigation, route }) {
 
     async function handleRegisterPointOffline(pointOffline: PointOfflineProps) {
         try {
-            const storedPoints = await SecureStore.getItemAsync("POINT_OFFLINE");
-            const pointsOffline: PointOfflineProps[] = storedPoints ? JSON.parse(storedPoints) : [];
+            const storedPoints = await SecureStore.getItemAsync(
+                "POINT_OFFLINE"
+            );
+            const pointsOffline: PointOfflineProps[] = storedPoints
+                ? JSON.parse(storedPoints)
+                : [];
             pointsOffline.unshift(pointOffline);
-            await SecureStore.setItemAsync("POINT_OFFLINE", JSON.stringify(pointsOffline));
+            await SecureStore.setItemAsync(
+                "POINT_OFFLINE",
+                JSON.stringify(pointsOffline)
+            );
         } catch (error) {
             throw new CustomError(
                 "Erro inesperado ao registrar o ponto.",
@@ -119,7 +153,6 @@ export default function BaterPonto({ navigation, route }) {
             );
         }
     }
-    
 
     async function handleBaterPonto() {
         setSubmit(true);
@@ -129,12 +162,12 @@ export default function BaterPonto({ navigation, route }) {
             dataTime.getHours()
         )}:${padZero(dataTime.getMinutes())}:${padZero(dataTime.getSeconds())}`;
         let location = await Location.getCurrentPositionAsync({});
-        // const latitude = String(location.coords.latitude);
-        // const longitude = String(location.coords.longitude);
-        const latitude = "-7.527434828863182";
-        const longitude = "-46.04329892365424";
+        const latitude = String(location.coords.latitude);
+        const longitude = String(location.coords.longitude);
+        // const latitude = "-7.527434828863182";
+        // const longitude = "-46.04329892365424";
         try {
-            if(await checkInternetConnection()) {
+            if (await checkInternetConnection()) {
                 const workPoint: WorkPointProps = await handleWorkPoint(
                     latitude,
                     longitude
@@ -143,20 +176,33 @@ export default function BaterPonto({ navigation, route }) {
                     setModalMessage("Não tem Ponto de Trabalho na sua Área.");
                     setModalStatus("Alert");
                 } else {
-                    await handleRegisterPoint({
-                        workPointId: String(workPoint.data.id),
-                        latitude,
-                        longitude,
-                        datetime: timeFull,
-                        file: photo,
-                    }, token);
+                    await handleRegisterPoint(
+                        {
+                            workPointId: String(workPoint.data.id),
+                            latitude,
+                            longitude,
+                            datetime: timeFull,
+                            file: photo,
+                        },
+                        token
+                    );
+                    await deleteImageLocally(photo);
                     setModalMessage("Ponto registrado com sucesso.");
                     setModalStatus("Success");
                 }
-            }
-            else {
-                await handleRegisterPointOffline({datetime: timeFull, latitude, longitude, file: await saveImageLocally(photo, `${timeFull}-${latitude}_${longitude}`)});
-                setModalMessage("Ponto registrado Localmente. \nSicronize os dados!");
+            } else {
+                await handleRegisterPointOffline({
+                    datetime: timeFull,
+                    latitude,
+                    longitude,
+                    file: await saveImageLocally(
+                        photo,
+                        `${timeFull}-${latitude}_${longitude}`
+                    ),
+                });
+                setModalMessage(
+                    "Ponto registrado Localmente. \nSicronize os dados!"
+                );
                 setModalStatus("Success");
             }
         } catch (error) {

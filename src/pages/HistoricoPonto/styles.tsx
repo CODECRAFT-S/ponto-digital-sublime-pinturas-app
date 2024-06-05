@@ -11,6 +11,10 @@ const styles = StyleSheet.create({
         width: "100%",
         height: "auto",
         marginTop: 50,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "flex-end",
+        marginBottom: 20,
     },
     titleText: {
         color: Colors.text.primary,
@@ -20,7 +24,15 @@ const styles = StyleSheet.create({
         width: "100%",
         height: "auto",
         gap: 12,
-        paddingVertical: 20,
+        paddingBottom: 15,
+    },
+    btnSincronizar: {
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        backgroundColor: Colors.theme.fourthary,
+    },
+    textSincronizar: {
+        color: Colors.text.white,
     },
 });
 

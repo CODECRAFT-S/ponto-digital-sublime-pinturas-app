@@ -4,3 +4,5 @@ class CustomError extends Error {
         this.name = name;
     }
 }
+
+export default CustomError;
