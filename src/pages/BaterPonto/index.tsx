@@ -168,11 +168,11 @@ export default function BaterPonto({ navigation, route }) {
             )}:${padZero(dataTime.getMinutes())}:${padZero(
                 dataTime.getSeconds()
             )}`;
-            // const location = await Location.getCurrentPositionAsync({});
-            // const latitude = String(location.coords.latitude);
-            // const longitude = String(location.coords.longitude);
-            const latitude = "-7.527434828863182";
-            const longitude = "-46.04329892365424";
+            const location = await Location.getCurrentPositionAsync({});
+            const latitude = String(location.coords.latitude);
+            const longitude = String(location.coords.longitude);
+            // const latitude = "-7.527434828863182";
+            // const longitude = "-46.04329892365424";
             if (await checkInternetConnection()) {
                 const workPoint: WorkPointProps = await handleWorkPoint(
                     latitude,
