@@ -19,7 +19,11 @@ import { Colors } from "@constants/Colors";
 import ButtonConfirm from "@components/ButtonConfirm";
 import ModalNotification from "@components/ModalNotification";
 import { checkInternetConnection } from "@scripts/checkInternetConnection";
-import { deleteImageLocally, deleteOfflineImagesFolder, saveImageLocally } from "@scripts/handlerImage";
+import {
+    deleteImageLocally,
+    deleteOfflineImagesFolder,
+    saveImageLocally,
+} from "@scripts/handlerImage";
 import { handleRegisterPoint, handleWorkPoint } from "@scripts/savePoint";
 import CustomError from "@constants/Error";
 
@@ -47,14 +51,18 @@ export default function BaterPonto({ navigation, route }) {
 
         const backAction = () => {
             if (navigation.canGoBack()) {
-                Alert.alert("Confirmar saída", "Você realmente quer sair?", [
-                    {
-                        text: "Cancelar",
-                        onPress: () => null,
-                        style: "cancel",
-                    },
-                    { text: "SIM", onPress: () => BackHandler.exitApp() },
-                ]);
+                Alert.alert(
+                    "Sair do APP",
+                    "Você realmente quer fechar o app?",
+                    [
+                        {
+                            text: "Cancelar",
+                            onPress: () => {},
+                            style: "cancel",
+                        },
+                        { text: "Sim", onPress: () => BackHandler.exitApp() },
+                    ]
+                );
                 return true;
             }
             return false;
@@ -126,11 +134,30 @@ export default function BaterPonto({ navigation, route }) {
     }
 
     async function logout() {
-        await deleteOfflineImagesFolder()
-        await SecureStore.deleteItemAsync("TOKEN_USER");
-        await SecureStore.deleteItemAsync("USERNAME");
-        await SecureStore.deleteItemAsync("POINT_OFFLINE");
-        navigation.navigate("Login");
+        const confirmLogout = () => {
+            deleteOfflineImagesFolder()
+                .then(() => SecureStore.deleteItemAsync("TOKEN_USER"))
+                .then(() => SecureStore.deleteItemAsync("USERNAME"))
+                .then(() => SecureStore.deleteItemAsync("POINT_OFFLINE"))
+                .then(() => navigation.navigate("Login"));
+        };
+
+        Alert.alert(
+            "Confirmar Logout",
+            "Você realmente deseja fazer logout?",
+            [
+                {
+                    text: "Não",
+                    onPress: () => {},
+                    style: "cancel",
+                },
+                {
+                    text: "Sim",
+                    onPress: confirmLogout,
+                },
+            ],
+            { cancelable: false }
+        );
     }
 
     function handleCapturePhoto() {

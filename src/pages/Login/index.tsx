@@ -15,6 +15,8 @@ import { Colors } from "@constants/Colors";
 
 import ButtonConfirm from "@components/ButtonConfirm";
 import ModalNotification from "@components/ModalNotification";
+import { checkInternetConnection } from "@scripts/checkInternetConnection";
+import CustomError from "@constants/Error";
 
 type ModalStatus = "Success" | "Fail" | "Alert";
 
@@ -38,10 +40,8 @@ export default function Login({ navigation }) {
         return () => backHandler.remove();
     }, []);
 
-    const [login, setLogin] = useState<string>("73528282061");
-    const [password, setPassword] = useState<string>(
-        "064fDc11a37B41685a9763869e35c64b"
-    );
+    const [login, setLogin] = useState<string>("");
+    const [password, setPassword] = useState<string>("");
     const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
     const [submit, setSubmit] = useState<boolean>(false);
 
@@ -60,25 +60,39 @@ export default function Login({ navigation }) {
 
     async function requestAuth() {
         try {
-            const result = await axios.get(
-                apiUrl(`/auth/${login}/${password}`),
-                {
-                    headers: {
-                        Authorization: KeyApi,
-                    },
-                }
-            );
-            if (result.status === 200) {
-                const data: UserDetails = result.data;
-                await SecureStore.setItemAsync("TOKEN_USER", data.data.token);
-                await SecureStore.setItemAsync("USERNAME", data.data.username);
-                await SecureStore.setItemAsync(
-                    "POINT_OFFLINE",
-                    JSON.stringify([])
+            if (await checkInternetConnection()) {
+                const result = await axios.get(
+                    apiUrl(`/auth/${login}/${password}`),
+                    {
+                        headers: {
+                            Authorization: KeyApi,
+                        },
+                    }
                 );
-                navigation.navigate("Home");
+                if (result.status === 200) {
+                    const data: UserDetails = result.data;
+                    await SecureStore.setItemAsync(
+                        "TOKEN_USER",
+                        data.data.token
+                    );
+                    await SecureStore.setItemAsync(
+                        "USERNAME",
+                        data.data.username
+                    );
+                    await SecureStore.setItemAsync(
+                        "POINT_OFFLINE",
+                        JSON.stringify([])
+                    );
+                    navigation.navigate("Home");
+                }
+            } else {
+                throw new CustomError(
+                    "Sem acesso a Internet! \nAche uma rede para realizar Login.",
+                    "Not Network"
+                );
             }
         } catch (error) {
+            setModalStatus("Fail");
             if (axios.isAxiosError(error)) {
                 if (error.response) {
                     const data = error.response.data;
@@ -89,17 +103,21 @@ export default function Login({ navigation }) {
                         setModalMessage(
                             "Usuário não encontrado ou senha incorreta!"
                         );
-                        setModalStatus("Fail");
-                        setModalVisible(true);
                     } else {
+                        setModalStatus("Alert");
                         setModalMessage(
                             "Algo deu Errado, Tente Novamente mais tarde!"
                         );
-                        setModalStatus("Alert");
-                        setModalVisible(true);
                     }
                 }
+            } else if (error instanceof CustomError) {
+                setModalMessage(error.message);
+            } else {
+                setModalMessage(
+                    "Algo inesperado aconteceu. \nContate o Suporte ou Tente Novamente!."
+                );
             }
+            setModalVisible(true);
         }
     }
 
@@ -116,7 +134,7 @@ export default function Login({ navigation }) {
             </View>
             <View style={styles.formLogin}>
                 <TextInput
-                    style={[styles.input, {textAlign: "auto"}]}
+                    style={[styles.input, { textAlign: "auto" }]}
                     outlineStyle={{ borderWidth: 0 }}
                     textColor={Colors.text.white}
                     cursorColor={Colors.text.primary}
@@ -138,7 +156,7 @@ export default function Login({ navigation }) {
                     }
                 />
                 <TextInput
-                    style={[styles.input, {textAlign: "auto"}]}
+                    style={[styles.input, { textAlign: "auto" }]}
                     outlineStyle={{ borderWidth: 0 }}
                     textColor={Colors.text.white}
                     cursorColor={Colors.text.primary}
