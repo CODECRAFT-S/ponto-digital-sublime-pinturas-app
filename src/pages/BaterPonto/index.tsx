@@ -253,6 +253,10 @@ export default function BaterPonto({ navigation, route }) {
         setModalVisible(true);
     }
 
+    const truncateText = (text: string, length: number) => {
+        return text.length > length ? text.substring(0, length) + "..." : text;
+    };
+
     return (
         <View style={styles.container}>
             <View style={styles.headerPage}>
@@ -265,9 +269,11 @@ export default function BaterPonto({ navigation, route }) {
                     </TextPaper>
                     <TextPaper
                         variant="titleMedium"
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
                         style={[styles.textUser, { fontWeight: "bold" }]}
                     >
-                        {username}
+                        {truncateText(username, 20)}
                     </TextPaper>
                 </View>
                 <TouchableOpacity onPress={logout}>

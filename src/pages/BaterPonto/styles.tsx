@@ -22,6 +22,7 @@ const styles = StyleSheet.create({
         paddingLeft: 25,
         justifyContent: "center",
         flexDirection: "row",
+        overflow: "hidden",
     },
     textUser: {
         color: Colors.text.primary
