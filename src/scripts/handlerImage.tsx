@@ -23,3 +23,14 @@ export const deleteImageLocally = async (imageUri: string) => {
         return false;
     }
 }
+
+export const deleteOfflineImagesFolder = async () => {
+    try {
+        const imagesFolder = FileSystem.documentDirectory + 'imagesPoints/';
+        await FileSystem.deleteAsync(imagesFolder, { idempotent: true });
+        return true;
+    } catch (error) {
+        // console.error('Erro ao excluir a pasta de imagens offline:', error);
+        return false;
+    }
+}

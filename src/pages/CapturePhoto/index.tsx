@@ -1,6 +1,6 @@
 import { CameraView, useCameraPermissions } from "expo-camera";
 import React, { useState, useRef } from "react";
-import { View, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity, SafeAreaView } from "react-native";
 import { Text } from "react-native-paper";
 import { FontAwesome } from "@expo/vector-icons";
 import { Feather } from '@expo/vector-icons';
@@ -31,18 +31,18 @@ export default function CapturePhoto({ navigation, route }) {
 
     if (!permission || !permission.granted) {
         return (
-            <View style={styles.containerRequest}>
+            <SafeAreaView style={styles.containerRequest}>
                 <Feather name="alert-triangle" size={100} color={Colors.text.yellow} />
                 <Text variant="titleLarge" style={styles.text}>
                     Precisamos da sua permissão para acessar a câmera.
                 </Text>
                 <ButtonConfirm onPress={requestPermission} text="Conceder permissão"></ButtonConfirm>
-            </View>
+            </SafeAreaView>
         );
     }
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <CameraView style={styles.camera} facing={"front"} ref={camRef}>
                 <View style={styles.buttonContainer}>
                     <TouchableOpacity
@@ -57,6 +57,6 @@ export default function CapturePhoto({ navigation, route }) {
                     </TouchableOpacity>
                 </View>
             </CameraView>
-        </View>
+        </SafeAreaView>
     );
 }

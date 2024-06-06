@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Image } from "expo-image";
-import { View, TouchableOpacity, Text, BackHandler, Alert } from "react-native";
+import {
+    View,
+    TouchableOpacity,
+    Text,
+    BackHandler,
+    Alert,
+    SafeAreaView,
+} from "react-native";
 import { Text as TextPaper } from "react-native-paper";
 import { FontAwesome } from "@expo/vector-icons";
 import * as Location from "expo-location";
@@ -12,7 +19,7 @@ import { Colors } from "@constants/Colors";
 import ButtonConfirm from "@components/ButtonConfirm";
 import ModalNotification from "@components/ModalNotification";
 import { checkInternetConnection } from "@scripts/checkInternetConnection";
-import { deleteImageLocally, saveImageLocally } from "@scripts/handlerImage";
+import { deleteImageLocally, deleteOfflineImagesFolder, saveImageLocally } from "@scripts/handlerImage";
 import { handleRegisterPoint, handleWorkPoint } from "@scripts/savePoint";
 import CustomError from "@constants/Error";
 
@@ -40,18 +47,14 @@ export default function BaterPonto({ navigation, route }) {
 
         const backAction = () => {
             if (navigation.canGoBack()) {
-                Alert.alert(
-                    "Confirmar saída",
-                    "Você realmente quer sair?",
-                    [
-                        {
-                            text: "Cancelar",
-                            onPress: () => null,
-                            style: "cancel"
-                        },
-                        { text: "SIM", onPress: () => BackHandler.exitApp() }
-                    ]
-                );
+                Alert.alert("Confirmar saída", "Você realmente quer sair?", [
+                    {
+                        text: "Cancelar",
+                        onPress: () => null,
+                        style: "cancel",
+                    },
+                    { text: "SIM", onPress: () => BackHandler.exitApp() },
+                ]);
                 return true;
             }
             return false;
@@ -122,10 +125,11 @@ export default function BaterPonto({ navigation, route }) {
         return `${day} de ${month}, ${year}`;
     }
 
-    function logout() {
-        SecureStore.deleteItemAsync("TOKEN_USER");
-        SecureStore.deleteItemAsync("USERNAME");
-        SecureStore.deleteItemAsync("POINT_OFFLINE");
+    async function logout() {
+        await deleteOfflineImagesFolder()
+        await SecureStore.deleteItemAsync("TOKEN_USER");
+        await SecureStore.deleteItemAsync("USERNAME");
+        await SecureStore.deleteItemAsync("POINT_OFFLINE");
         navigation.navigate("Login");
     }
 
@@ -156,17 +160,19 @@ export default function BaterPonto({ navigation, route }) {
 
     async function handleBaterPonto() {
         setSubmit(true);
-        let timeFull = `${padZero(dataTime.getFullYear())}-${padZero(
-            dataTime.getMonth() + 1
-        )}-${padZero(dataTime.getDate())} ${padZero(
-            dataTime.getHours()
-        )}:${padZero(dataTime.getMinutes())}:${padZero(dataTime.getSeconds())}`;
-        let location = await Location.getCurrentPositionAsync({});
-        const latitude = String(location.coords.latitude);
-        const longitude = String(location.coords.longitude);
-        // const latitude = "-7.527434828863182";
-        // const longitude = "-46.04329892365424";
         try {
+            const timeFull = `${padZero(dataTime.getFullYear())}-${padZero(
+                dataTime.getMonth() + 1
+            )}-${padZero(dataTime.getDate())} ${padZero(
+                dataTime.getHours()
+            )}:${padZero(dataTime.getMinutes())}:${padZero(
+                dataTime.getSeconds()
+            )}`;
+            // const location = await Location.getCurrentPositionAsync({});
+            // const latitude = String(location.coords.latitude);
+            // const longitude = String(location.coords.longitude);
+            const latitude = "-7.527434828863182";
+            const longitude = "-46.04329892365424";
             if (await checkInternetConnection()) {
                 const workPoint: WorkPointProps = await handleWorkPoint(
                     latitude,

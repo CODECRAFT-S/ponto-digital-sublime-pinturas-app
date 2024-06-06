@@ -1,10 +1,10 @@
 import { Colors } from '@constants/Colors';
-import { StyleSheet } from 'react-native'
+import { Platform, StyleSheet } from 'react-native'
 
 const styles = StyleSheet.create({
     modalMensagem: {
         width: "75%",
-        height: "auto",
+        height: Platform.OS === "ios" ? 175 : "auto",
         paddingHorizontal: 20,
         paddingVertical: 30,
         borderRadius: 6,

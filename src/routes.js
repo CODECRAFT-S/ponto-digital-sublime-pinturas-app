@@ -2,7 +2,7 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator, TransitionPresets } from "@react-navigation/stack";
 import { FontAwesome } from "@expo/vector-icons";
-import { View } from "react-native";
+import { Platform, SafeAreaView, View } from "react-native";
 import { Colors } from "@constants/Colors";
 
 import Login from "@pages/Login";
@@ -27,7 +27,7 @@ function Tabs() {
                     }
 
                     return (
-                        <View
+                        <SafeAreaView
                             style={{
                                 borderTopWidth: focused ? 2 : 0,
                                 borderTopColor: Colors.theme.secondary,
@@ -42,7 +42,7 @@ function Tabs() {
                                 size={size}
                                 color={color}
                             />
-                        </View>
+                        </SafeAreaView>
                     );
                 },
                 headerShown: false,
@@ -52,7 +52,7 @@ function Tabs() {
                     backgroundColor: "#2A2A2B",
                     borderTopWidth: 0,
                     elevation: 0,
-                    height: 70,
+                    height: Platform.OS === "ios" ? 100 : 70,
                 },
                 tabBarLabelStyle: {
                     fontSize: 14,
