@@ -1,5 +1,5 @@
 import { Colors } from '@constants/Colors';
-import { StyleSheet } from 'react-native'
+import { Platform, StyleSheet } from 'react-native'
 
 const styles = StyleSheet.create({
     container: {
@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
         height: "auto",
         alignItems: "center",
         flexDirection: "row",
-        paddingTop: 35,
+        paddingTop: Platform.OS === "ios" ? 75 : 35,
         paddingHorizontal: 20,
         marginBottom: 30,
     },
@@ -22,6 +22,7 @@ const styles = StyleSheet.create({
         paddingLeft: 25,
         justifyContent: "center",
         flexDirection: "row",
+        overflow: "hidden",
     },
     textUser: {
         color: Colors.text.primary

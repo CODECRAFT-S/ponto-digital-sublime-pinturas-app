@@ -1,10 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Image } from "expo-image";
-import { View, TouchableOpacity, Text } from "react-native";
+import {
+    View,
+    TouchableOpacity,
+    Text,
+    BackHandler,
+    Alert,
+    SafeAreaView,
+} from "react-native";
 import { Text as TextPaper } from "react-native-paper";
 import { FontAwesome } from "@expo/vector-icons";
 import * as Location from "expo-location";
-import axios, { AxiosError } from "axios";
 import * as SecureStore from "expo-secure-store";
 
 import notFoundImage from "@image/notFound.png";
@@ -12,36 +18,14 @@ import styles from "./styles";
 import { Colors } from "@constants/Colors";
 import ButtonConfirm from "@components/ButtonConfirm";
 import ModalNotification from "@components/ModalNotification";
-import { apiUrl } from "@scripts/apiUrl";
-import { KeyApi } from "@constants/KeyApi";
-
-interface WorkPointProps {
-    status: string;
-    data:
-        | {
-              id: Number;
-              name: string;
-              latitude: string;
-              longitude: string;
-              distance: Number;
-          }
-        | [];
-}
-
-interface FormData {
-    workPointId: string;
-    latitude: string;
-    longitude: string;
-    datetime: string;
-    file: string;
-}
-
-class CustomError extends Error {
-    constructor(message: string, name: string) {
-        super(message);
-        this.name = name;
-    }
-}
+import { checkInternetConnection } from "@scripts/checkInternetConnection";
+import {
+    deleteImageLocally,
+    deleteOfflineImagesFolder,
+    saveImageLocally,
+} from "@scripts/handlerImage";
+import { handleRegisterPoint, handleWorkPoint } from "@scripts/savePoint";
+import CustomError from "@constants/Error";
 
 type ModalStatus = "Success" | "Fail" | "Alert";
 
@@ -52,18 +36,44 @@ export default function BaterPonto({ navigation, route }) {
         const fetchData = async () => {
             try {
                 const name = await SecureStore.getItemAsync("USERNAME");
-                const token = await SecureStore.getItemAsync("TOKEN_USER");
-                if (!name || !token) {
+                const tokenStore = await SecureStore.getItemAsync("TOKEN_USER");
+                if (!name || !tokenStore) {
                     navigation.navigate("Login");
                 } else {
                     setUsername(name);
-                    setToken(token);
+                    setToken(tokenStore);
                 }
             } catch (e) {
                 navigation.navigate("Login");
             }
         };
         fetchData();
+
+        const backAction = () => {
+            if (navigation.canGoBack()) {
+                Alert.alert(
+                    "Sair do APP",
+                    "Você realmente quer fechar o app?",
+                    [
+                        {
+                            text: "Cancelar",
+                            onPress: () => {},
+                            style: "cancel",
+                        },
+                        { text: "Sim", onPress: () => BackHandler.exitApp() },
+                    ]
+                );
+                return true;
+            }
+            return false;
+        };
+
+        const backHandler = BackHandler.addEventListener(
+            "hardwareBackPress",
+            backAction
+        );
+
+        return () => backHandler.remove();
     }, []);
 
     useEffect(() => {
@@ -123,74 +133,50 @@ export default function BaterPonto({ navigation, route }) {
         return `${day} de ${month}, ${year}`;
     }
 
-    function logout() {
-        SecureStore.deleteItemAsync("TOKEN_USER");
-        SecureStore.deleteItemAsync("USERNAME");
-        navigation.navigate("Login");
+    async function logout() {
+        const confirmLogout = () => {
+            deleteOfflineImagesFolder()
+                .then(() => SecureStore.deleteItemAsync("TOKEN_USER"))
+                .then(() => SecureStore.deleteItemAsync("USERNAME"))
+                .then(() => SecureStore.deleteItemAsync("POINT_OFFLINE"))
+                .then(() => navigation.navigate("Login"));
+        };
+
+        Alert.alert(
+            "Confirmar Logout",
+            "Você realmente deseja fazer logout?",
+            [
+                {
+                    text: "Não",
+                    onPress: () => {},
+                    style: "cancel",
+                },
+                {
+                    text: "Sim",
+                    onPress: confirmLogout,
+                },
+            ],
+            { cancelable: false }
+        );
     }
 
     function handleCapturePhoto() {
         navigation.navigate("CapturePhoto");
     }
 
-    async function handleWorkPoint(latitude: string, longitude: string) {
+    async function handleRegisterPointOffline(pointOffline: PointOfflineProps) {
         try {
-            const result = await axios.get(apiUrl("/workpoint"), {
-                headers: {
-                    Authorization: KeyApi,
-                },
-                params: {
-                    lat: latitude,
-                    log: longitude,
-                },
-            });
-            if (result.status === 200) {
-                const data: WorkPointProps = result.data;
-                return data;
-            } else {
-                throw new Error();
-            }
-        } catch (error) {
-            throw new CustomError(
-                "Erro inesperado ao encontrar o ponto.",
-                "Error_Search_Point"
+            const storedPoints = await SecureStore.getItemAsync(
+                "POINT_OFFLINE"
             );
-        }
-    }
-
-    async function handleRegisterPoint(formData: FormData) {
-        try {
-            const file = {
-                uri: photo, 
-                name: `${formData.datetime}-${formData.latitude}_${formData.longitude}`, // e.g. 'image123.jpg',
-                type: "image/jpeg",
-            };
-
-            const formDataToSend = new FormData();
-            formDataToSend.append("work_point_id", formData.workPointId);
-            formDataToSend.append("latitude", formData.latitude);
-            formDataToSend.append("longitude", formData.longitude);
-            formDataToSend.append("datetime", formData.datetime);
-            formDataToSend.append("file", file);
-
-            const response = await axios.post(
-                apiUrl("/point/save"),
-                formDataToSend,
-                {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+            const pointsOffline: PointOfflineProps[] = storedPoints
+                ? JSON.parse(storedPoints)
+                : [];
+            pointsOffline.unshift(pointOffline);
+            await SecureStore.setItemAsync(
+                "POINT_OFFLINE",
+                JSON.stringify(pointsOffline)
             );
-
-            if (response.status === 200) {
-                setModalMessage("Ponto registrado com sucesso.");
-                setModalStatus("Success");
-                return response;
-            } else {
-                throw new Error();
-            }
         } catch (error) {
             throw new CustomError(
                 "Erro inesperado ao registrar o ponto.",
@@ -201,42 +187,64 @@ export default function BaterPonto({ navigation, route }) {
 
     async function handleBaterPonto() {
         setSubmit(true);
-        let timeFull = `${padZero(dataTime.getFullYear())}-${padZero(
-            dataTime.getMonth() + 1
-        )}-${padZero(dataTime.getDay())} ${padZero(
-            dataTime.getHours()
-        )}:${padZero(dataTime.getMinutes())}:${padZero(dataTime.getSeconds())}`;
-        let location = await Location.getCurrentPositionAsync({});
-        // const latitude = String(location.coords.latitude);
-        // const longitude = String(location.coords.longitude);
-        const latitude = "-7.527434828863182";
-        const longitude = "-46.04329892365424";
         try {
-            const workPoint: WorkPointProps = await handleWorkPoint(
-                latitude,
-                longitude
-            );
-            if (Array.isArray(workPoint.data)) {
-                setModalMessage("Não tem Ponto de Trabalho na sua Área.");
-                setModalStatus("Alert");
+            const timeFull = `${padZero(dataTime.getFullYear())}-${padZero(
+                dataTime.getMonth() + 1
+            )}-${padZero(dataTime.getDate())} ${padZero(
+                dataTime.getHours()
+            )}:${padZero(dataTime.getMinutes())}:${padZero(
+                dataTime.getSeconds()
+            )}`;
+            const location = await Location.getCurrentPositionAsync({});
+            const latitude = String(location.coords.latitude);
+            const longitude = String(location.coords.longitude);
+            // const latitude = "-7.527434828863182";
+            // const longitude = "-46.04329892365424";
+            if (await checkInternetConnection()) {
+                const workPoint: WorkPointProps = await handleWorkPoint(
+                    latitude,
+                    longitude
+                );
+                if (Array.isArray(workPoint.data)) {
+                    setModalMessage("Não tem Ponto de Trabalho na sua Área.");
+                    setModalStatus("Alert");
+                } else {
+                    await handleRegisterPoint(
+                        {
+                            workPointId: String(workPoint.data.id),
+                            latitude,
+                            longitude,
+                            datetime: timeFull,
+                            file: photo,
+                        },
+                        token
+                    );
+                    await deleteImageLocally(photo);
+                    setModalMessage("Ponto registrado com sucesso.");
+                    setModalStatus("Success");
+                }
             } else {
-                const result = await handleRegisterPoint({
-                    workPointId: String(workPoint.data.id),
+                await handleRegisterPointOffline({
+                    datetime: timeFull,
                     latitude,
                     longitude,
-                    datetime: timeFull,
-                    file: photo,
+                    file: await saveImageLocally(
+                        photo,
+                        `${timeFull}-${latitude}_${longitude}`
+                    ),
                 });
-                setModalMessage("Ponto registrado com sucesso.");
+                setModalMessage(
+                    "Ponto registrado Localmente. \nSicronize os dados!"
+                );
                 setModalStatus("Success");
             }
         } catch (error) {
             setModalStatus("Fail");
-            if (error instanceof Error) {
+            if (error instanceof CustomError) {
                 setModalMessage(error.message);
             } else {
                 setModalMessage(
-                    "Algo inesperado aconteceu. Contate o Suporte ou Tente Novamente!."
+                    "Algo inesperado aconteceu. \nContate o Suporte ou Tente Novamente!."
                 );
             }
         }
@@ -244,6 +252,10 @@ export default function BaterPonto({ navigation, route }) {
         setPhoto(notFoundImage);
         setModalVisible(true);
     }
+
+    const truncateText = (text: string, length: number) => {
+        return text.length > length ? text.substring(0, length) + "..." : text;
+    };
 
     return (
         <View style={styles.container}>
@@ -257,9 +269,11 @@ export default function BaterPonto({ navigation, route }) {
                     </TextPaper>
                     <TextPaper
                         variant="titleMedium"
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
                         style={[styles.textUser, { fontWeight: "bold" }]}
                     >
-                        {username}
+                        {truncateText(username, 20)}
                     </TextPaper>
                 </View>
                 <TouchableOpacity onPress={logout}>

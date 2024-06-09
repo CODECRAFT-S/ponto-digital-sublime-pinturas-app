@@ -1,71 +1,144 @@
-import React, { useState, useEffect } from "react";
-import { View, ScrollView, RefreshControl } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import {
+    View,
+    ScrollView,
+    RefreshControl,
+    TouchableOpacity,
+} from "react-native";
 import { Text } from "react-native-paper";
 import styles from "./styles";
-import PontoBox from "@components/PontoBox";
-
 import axios, { AxiosError } from "axios";
 import * as SecureStore from "expo-secure-store";
 import { apiUrl } from "@scripts/apiUrl";
 
+import PontoBox from "@components/PontoBox";
 import ModalNotification from "@components/ModalNotification";
+import { checkInternetConnection } from "@scripts/checkInternetConnection";
+import { handleRegisterPoint, handleWorkPoint } from "@scripts/savePoint";
+import { deleteImageLocally } from "@scripts/handlerImage";
+import CustomError from "@constants/Error";
 
 type ModalStatus = "Success" | "Fail" | "Alert";
 
-interface Point {
-    id: Number;
-    system_user_id: Number;
-    work_point_id: Number;
-    latitude: String;
-    longitude: String;
-    datetime: String;
-    file: String;
-    created_at: String;
-    deleted_at: String | null;
-}
-
 export default function HistoricoPonto({ navigation }) {
     const [refreshing, setRefreshing] = useState(false);
-    const [onlinePoint, setOnlinePoint] = useState<Point[]>();
+    const [pointsOnline, setPointsOnline] = useState<PointProps[]>();
+    const [pointsOffline, setPointsOffline] = useState<PointOfflineProps[]>();
+    const [asyncPoints, setAsyncPoints] = useState(false);
 
     const [modalVisible, setModalVisible] = useState(false);
     const [modalMessage, setModalMessage] = useState("");
     const [modalStatus, setModalStatus] = useState<ModalStatus>("Success");
 
+    const scrollViewRef = useRef<ScrollView>(null);
+
     let [token, setToken] = useState("");
-    useEffect(() => {
-        const token = SecureStore.getItemAsync("TOKEN_USER")
-            .then((e) => {
-                return e;
-            })
-            .catch((e) => {
-                navigation.navigate("Login");
-            });
-        setToken(token);
-    }, []);
 
     async function requestListPoints() {
+        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+        setRefreshing(true);
         try {
-            const result = await axios.get(apiUrl("/point/list"), {
-                headers: {
-                    Authorization:
-                        "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiNzM1MjgyODIwNjEiLCJ1c2VyaWQiOjMsInVzZXJuYW1lIjoiSm9zXHUwMGU5IGRhIFNpbHZhIiwidXNlcm1haWwiOiJqb3NlQGdtYWlsLmNvbSIsImV4cGlyZXMiOjE3MTc3Njk4MTJ9.Aue35xz2Jrxb5SUCAn1s08teCUKf0FBtfShh6Su_4RY",
-                },
-            });
-            // console.log(result.data.data);
-            setOnlinePoint(result.data.data);
+            if (await checkInternetConnection()) {
+                const result = await axios.get(apiUrl("/point/list"), {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                setPointsOnline(result.data.data);
+            }
         } catch (error) {
-            setModalMessage(
-                "Algo deu Errado, Tente Novamente mais tarde!"
-            );
+            setModalMessage("Algo deu Errado, Tente Novamente mais tarde!");
             setModalStatus("Fail");
             setModalVisible(true);
         }
+        setRefreshing(false);
     }
 
     useEffect(() => {
-        requestListPoints();
+        const fetchData = async () => {
+            try {
+                const tokenStore = await SecureStore.getItemAsync("TOKEN_USER");
+                const points = await SecureStore.getItemAsync("POINT_OFFLINE");
+                if (!tokenStore && !points) {
+                    navigation.navigate("Login");
+                } else {
+                    await setToken(tokenStore);
+                    await setPointsOffline(JSON.parse(points));
+                }
+            } catch (e) {
+                navigation.navigate("Login");
+            }
+        };
+        fetchData();
     }, []);
+
+    useEffect(() => {
+        if (token) {
+            requestListPoints();
+        }
+    }, [token, pointsOffline?.length === 0]);
+
+    async function registerAsyncPoint(point: PointOfflineProps) {
+        try {
+            const workPoint: WorkPointProps = await handleWorkPoint(
+                point.latitude,
+                point.longitude
+            );
+            if (!Array.isArray(workPoint.data)) {
+                await handleRegisterPoint(
+                    {
+                        workPointId: String(workPoint.data.id),
+                        latitude: point.latitude,
+                        longitude: point.longitude,
+                        datetime: point.datetime,
+                        file: point.file,
+                    },
+                    token
+                );
+
+                await deleteImageLocally(point.file);
+            } else {
+                return;
+            }
+        } catch (error) {
+            throw new Error();
+        }
+    }
+
+    async function handlerAsyncPoint() {
+        setAsyncPoints(true);
+        try {
+            if (await checkInternetConnection()) {
+                const reversedPoints = [...(pointsOffline || [])].reverse();
+                for (let point of reversedPoints) {
+                    await registerAsyncPoint(point);
+                    pointsOffline.pop(); 
+                    await SecureStore.setItemAsync(
+                        "POINT_OFFLINE",
+                        JSON.stringify(pointsOffline)
+                    );
+                }
+                setModalMessage("Dados Sincronizados!");
+                setModalStatus("Success");
+            } else {
+                throw new CustomError(
+                    "Dados não Sincronizados! \n Sem acesso a Internet",
+                    "Not Network"
+                );
+            }
+        } catch (error) {
+            setModalStatus("Fail");
+            if (error instanceof CustomError) {
+                setModalMessage(error.message);
+            } else {
+                setModalMessage(
+                    "Algo inesperado aconteceu. \nContate o Suporte ou Tente Novamente!."
+                );
+            }
+        }
+        setModalVisible(true);
+        setAsyncPoints(false);
+    }
 
     return (
         <View style={styles.container}>
@@ -73,9 +146,23 @@ export default function HistoricoPonto({ navigation }) {
                 <Text style={styles.titleText} variant="titleMedium">
                     Histórico de Registros
                 </Text>
+
+                <TouchableOpacity
+                    style={[
+                        styles.btnSincronizar,
+                        { opacity: pointsOffline?.length > 0 ? 1 : 0.31 },
+                    ]}
+                    disabled={asyncPoints || pointsOffline?.length === 0}
+                    onPress={handlerAsyncPoint}
+                >
+                    <Text style={styles.textSincronizar} variant="titleMedium">
+                        Sincronizar
+                    </Text>
+                </TouchableOpacity>
             </View>
             <ScrollView
                 scrollEnabled
+                ref={scrollViewRef}
                 contentContainerStyle={styles.scrollView}
                 refreshControl={
                     <RefreshControl
@@ -84,16 +171,25 @@ export default function HistoricoPonto({ navigation }) {
                     />
                 }
             >
-                {/* <PontoBox data={"07/10/2024"} time={"08:12"} status={false} />
-        <PontoBox data={"06/10/2024"} time={"20:12"} status={false} />
-        <PontoBox data={"06/10/2024"} time={"16:12"} status={true} /> */}
-
-                {onlinePoint?.map((point, index) => {
+                {pointsOffline?.map((point, index) => {
                     const formatedTime = point.datetime.split(" ");
                     const data = formatedTime[0].split("-");
                     return (
                         <PontoBox
                             key={index}
+                            data={`${data[2]}/${data[1]}/${data[0]}`}
+                            time={formatedTime[1]}
+                            status={false}
+                        />
+                    );
+                })}
+
+                {pointsOnline?.map((point, index) => {
+                    const formatedTime = point.datetime.split(" ");
+                    const data = formatedTime[0].split("-");
+                    return (
+                        <PontoBox
+                            key={String(point.id)}
                             data={`${data[2]}/${data[1]}/${data[0]}`}
                             time={formatedTime[1]}
                             status={true}

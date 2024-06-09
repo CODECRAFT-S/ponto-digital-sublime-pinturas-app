@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Image } from "expo-image";
-import { View, Keyboard, Pressable } from "react-native";
+import { View, Keyboard, Pressable, BackHandler } from "react-native";
 import { Button, Text, TextInput } from "react-native-paper";
 import { AntDesign } from "@expo/vector-icons";
 import { Entypo } from "@expo/vector-icons";
 import axios, { AxiosError } from "axios";
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from "expo-secure-store";
 
 import styles from "./styles";
 import logoSP from "@image/logo.svg";
@@ -15,33 +15,33 @@ import { Colors } from "@constants/Colors";
 
 import ButtonConfirm from "@components/ButtonConfirm";
 import ModalNotification from "@components/ModalNotification";
+import { checkInternetConnection } from "@scripts/checkInternetConnection";
+import CustomError from "@constants/Error";
 
 type ModalStatus = "Success" | "Fail" | "Alert";
 
-interface UserDetails {
-    status: boolean,
-    data: {
-        user: string,
-        userid: number,
-        username: string,
-        usermail: string,
-        token: string
-    }
-}
-
 export default function Login({ navigation }) {
-
-    useEffect(()=>{
-        SecureStore.getItemAsync("TOKEN_USER").then((e)=>{
-            if(e !== null){
-                navigation.navigate("Home")
+    useEffect(() => {
+        SecureStore.getItemAsync("TOKEN_USER").then((e) => {
+            if (e !== null) {
+                navigation.navigate("Home");
             }
-        })
+        });
 
-    }, [])
+        const backAction = () => {
+            return false;
+        };
 
-    const [login, setLogin] = useState<string>("73528282061");
-    const [password, setPassword] = useState<string>("064fDc11a37B41685a9763869e35c64b");
+        const backHandler = BackHandler.addEventListener(
+            "hardwareBackPress",
+            backAction
+        );
+
+        return () => backHandler.remove();
+    }, []);
+
+    const [login, setLogin] = useState<string>("");
+    const [password, setPassword] = useState<string>("");
     const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
     const [submit, setSubmit] = useState<boolean>(false);
 
@@ -60,21 +60,39 @@ export default function Login({ navigation }) {
 
     async function requestAuth() {
         try {
-            const result = await axios.get(
-                apiUrl(`/auth/${login}/${password}`),
-                {
-                    headers: {
-                        Authorization: KeyApi,
-                    },
+            if (await checkInternetConnection()) {
+                const result = await axios.get(
+                    apiUrl(`/auth/${login}/${password}`),
+                    {
+                        headers: {
+                            Authorization: KeyApi,
+                        },
+                    }
+                );
+                if (result.status === 200) {
+                    const data: UserDetails = result.data;
+                    await SecureStore.setItemAsync(
+                        "TOKEN_USER",
+                        data.data.token
+                    );
+                    await SecureStore.setItemAsync(
+                        "USERNAME",
+                        data.data.username
+                    );
+                    await SecureStore.setItemAsync(
+                        "POINT_OFFLINE",
+                        JSON.stringify([])
+                    );
+                    navigation.navigate("Home");
                 }
-            );
-            if (result.status === 200) {
-                const data: UserDetails = result.data
-                await SecureStore.setItemAsync("TOKEN_USER", data.data.token)
-                await SecureStore.setItemAsync("USERNAME", data.data.username)
-                navigation.navigate("Home");
+            } else {
+                throw new CustomError(
+                    "Sem acesso a Internet! \nAche uma rede para realizar Login.",
+                    "Not Network"
+                );
             }
         } catch (error) {
+            setModalStatus("Fail");
             if (axios.isAxiosError(error)) {
                 if (error.response) {
                     const data = error.response.data;
@@ -85,18 +103,21 @@ export default function Login({ navigation }) {
                         setModalMessage(
                             "Usuário não encontrado ou senha incorreta!"
                         );
-                        setModalStatus("Fail");
-                        setModalVisible(true);
-                    }
-                    else {
+                    } else {
+                        setModalStatus("Alert");
                         setModalMessage(
                             "Algo deu Errado, Tente Novamente mais tarde!"
                         );
-                        setModalStatus("Alert");
-                        setModalVisible(true);
                     }
                 }
+            } else if (error instanceof CustomError) {
+                setModalMessage(error.message);
+            } else {
+                setModalMessage(
+                    "Algo inesperado aconteceu. \nContate o Suporte ou Tente Novamente!."
+                );
             }
+            setModalVisible(true);
         }
     }
 
@@ -113,7 +134,7 @@ export default function Login({ navigation }) {
             </View>
             <View style={styles.formLogin}>
                 <TextInput
-                    style={styles.input}
+                    style={[styles.input, { textAlign: "auto" }]}
                     outlineStyle={{ borderWidth: 0 }}
                     textColor={Colors.text.white}
                     cursorColor={Colors.text.primary}
@@ -135,7 +156,7 @@ export default function Login({ navigation }) {
                     }
                 />
                 <TextInput
-                    style={styles.input}
+                    style={[styles.input, { textAlign: "auto" }]}
                     outlineStyle={{ borderWidth: 0 }}
                     textColor={Colors.text.white}
                     cursorColor={Colors.text.primary}
