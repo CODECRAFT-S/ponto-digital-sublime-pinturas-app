@@ -33,3 +33,9 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+#Env Keys
+KeyApi.tsx
+
+#Debugger
+%ProgramData%/
