@@ -1,5 +1,5 @@
 export const apiUrl = (params: string) => {
-    const url = `https://gestor.appke.com.br${params}`
+    const url = `https://sublimepinturas.com.br${params}`
 
     return url
 }

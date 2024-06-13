@@ -61,8 +61,12 @@ export default function Login({ navigation }) {
     async function requestAuth() {
         try {
             if (await checkInternetConnection()) {
-                const result = await axios.get(
-                    apiUrl(`/auth/${login}/${password}`),
+                const result = await axios.post(
+                    apiUrl(`/auth`),
+                    {
+                        login,
+                        password,
+                    },
                     {
                         headers: {
                             Authorization: KeyApi,
