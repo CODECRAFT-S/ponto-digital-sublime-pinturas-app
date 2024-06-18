@@ -27,7 +27,7 @@ import {
 import { handleRegisterPoint, handleWorkPoint } from "@scripts/savePoint";
 import CustomError from "@constants/Error";
 
-type ModalStatus = "Success" | "Fail" | "Alert";
+type ModalStatus = "Success" | "Fail" | "Alert" | "Loading";
 
 export default function BaterPonto({ navigation, route }) {
     let [username, setUsername] = useState("");
@@ -94,6 +94,7 @@ export default function BaterPonto({ navigation, route }) {
     const [modalVisible, setModalVisible] = useState(false);
     const [modalMessage, setModalMessage] = useState("");
     const [modalStatus, setModalStatus] = useState<ModalStatus>("Success");
+    const [modalTime, setModalTime] = useState<number | null>(3000);
     const [submit, setSubmit] = useState(false);
 
     const padZero = (num: number) => (num < 10 ? `0${num}` : num);
@@ -165,6 +166,7 @@ export default function BaterPonto({ navigation, route }) {
     }
 
     async function handleRegisterPointOffline(pointOffline: PointOfflineProps) {
+        setModalVisible(true);
         try {
             const storedPoints = await SecureStore.getItemAsync(
                 "POINT_OFFLINE"
@@ -186,6 +188,10 @@ export default function BaterPonto({ navigation, route }) {
     }
 
     async function handleBaterPonto() {
+        setModalVisible(true);
+        setModalTime(null);
+        setModalStatus("Loading");
+        setModalMessage("Sincronizando o GPS. Só um momento.");
         setSubmit(true);
         try {
             const timeFull = `${padZero(dataTime.getFullYear())}-${padZero(
@@ -201,6 +207,7 @@ export default function BaterPonto({ navigation, route }) {
             // const latitude = "-7.527434828863182";
             // const longitude = "-46.04329892365424";
             if (await checkInternetConnection()) {
+                setModalMessage("Registrando o ponto. Só um momento.");
                 const workPoint: WorkPointProps = await handleWorkPoint(
                     latitude,
                     longitude
@@ -249,8 +256,8 @@ export default function BaterPonto({ navigation, route }) {
             }
         }
         setSubmit(false);
+        setModalTime(3000);
         setPhoto(notFoundImage);
-        setModalVisible(true);
     }
 
     const truncateText = (text: string, length: number) => {
@@ -320,7 +327,7 @@ export default function BaterPonto({ navigation, route }) {
             <ModalNotification
                 mensagem={modalMessage}
                 status={modalStatus}
-                timeVisable={3000}
+                timeVisable={modalTime}
                 visible={modalVisible}
                 onDismiss={() => setModalVisible(false)}
             />
