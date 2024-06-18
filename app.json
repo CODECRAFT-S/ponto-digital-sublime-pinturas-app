@@ -24,7 +24,8 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION"
-      ]
+      ],
+      "package": "com.piedro404.PontoDigitalSublimePinturas"
     },
     "plugins": [
       [
@@ -40,6 +41,11 @@
         }
       ],
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "140e84fb-bab9-43dc-ae15-ffad607ede2e"
+      }
+    }
   }
 }

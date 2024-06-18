@@ -40,8 +40,8 @@ export default function Login({ navigation }) {
         return () => backHandler.remove();
     }, []);
 
-    const [login, setLogin] = useState<string>("73528282061");
-    const [password, setPassword] = useState<string>("064fDc11a37B41685a9763869e35c64b");
+    const [login, setLogin] = useState<string>("");
+    const [password, setPassword] = useState<string>("");
     const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
     const [modalTime, setModalTime] = useState<number | null>(3000);
     const [submit, setSubmit] = useState<boolean>(false);

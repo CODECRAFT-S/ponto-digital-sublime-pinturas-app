@@ -35,7 +35,10 @@ yarn-error.*
 *.tsbuildinfo
 
 #Env Keys
-KeyApi.tsx
+# KeyApi.tsx
 
 #Debugger
 %ProgramData%/
+
+#Pre-build
+android
