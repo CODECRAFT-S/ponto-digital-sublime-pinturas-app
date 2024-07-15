@@ -193,6 +193,25 @@ export default function BaterPonto({ navigation, route }) {
         setModalStatus("Loading");
         setModalMessage("Sincronizando o GPS. Só um momento.");
         setSubmit(true);
+
+        const getLocationWithTimeout = async (timeout: number) => {
+            return new Promise<{
+                coords: { latitude: number; longitude: number } | null;
+            }>((resolve, reject) => {
+                const timer = setTimeout(() => resolve(null), timeout);
+
+                Location.getCurrentPositionAsync({})
+                    .then((location) => {
+                        clearTimeout(timer);
+                        resolve(location);
+                    })
+                    .catch((error) => {
+                        clearTimeout(timer);
+                        resolve(null);
+                    });
+            });
+        };
+
         try {
             const timeFull = `${padZero(dataTime.getFullYear())}-${padZero(
                 dataTime.getMonth() + 1
@@ -201,40 +220,40 @@ export default function BaterPonto({ navigation, route }) {
             )}:${padZero(dataTime.getMinutes())}:${padZero(
                 dataTime.getSeconds()
             )}`;
-            const location = await Location.getCurrentPositionAsync({});
-            const latitude = String(location.coords.latitude);
-            const longitude = String(location.coords.longitude);
+
+            const location = await getLocationWithTimeout(10000);
+            const latitude = location ? String(location.coords.latitude) : null;
+            const longitude = location
+                ? String(location.coords.longitude)
+                : null;
             // const latitude = "-7.527434828863182";
             // const longitude = "-46.04329892365424";
+
             if (await checkInternetConnection()) {
                 setModalMessage("Registrando o ponto. Só um momento.");
                 const workPoint: WorkPointProps = await handleWorkPoint(
                     latitude,
                     longitude
                 );
-                if (Array.isArray(workPoint.data)) {
-                    setModalMessage("Não tem Ponto de Trabalho na sua Área.");
-                    setModalStatus("Alert");
-                } else {
-                    await handleRegisterPoint(
-                        {
-                            workPointId: String(workPoint.data.id),
-                            latitude,
-                            longitude,
-                            datetime: timeFull,
-                            file: photo,
-                        },
-                        token
-                    );
-                    await deleteImageLocally(photo);
-                    setModalMessage("Ponto registrado com sucesso.");
-                    setModalStatus("Success");
-                }
+
+                await handleRegisterPoint(
+                    {
+                        workPointId: String(workPoint.data.id),
+                        latitude,
+                        longitude,
+                        datetime: timeFull,
+                        file: photo,
+                    },
+                    token
+                );
+                await deleteImageLocally(photo);
+                setModalMessage("Ponto registrado com sucesso.");
+                setModalStatus("Success");
             } else {
                 await handleRegisterPointOffline({
                     datetime: timeFull,
-                    latitude,
-                    longitude,
+                    latitude: latitude ?? "null",
+                    longitude: longitude ?? "null",
                     file: await saveImageLocally(
                         photo,
                         `${timeFull}-${latitude}_${longitude}`
