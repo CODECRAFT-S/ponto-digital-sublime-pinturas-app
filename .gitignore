@@ -39,3 +39,6 @@ KeyApi.tsx
 
 #Debugger
 %ProgramData%/
+
+#Pre-build
+android

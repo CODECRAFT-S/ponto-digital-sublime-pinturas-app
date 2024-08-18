@@ -18,7 +18,7 @@ import ModalNotification from "@components/ModalNotification";
 import { checkInternetConnection } from "@scripts/checkInternetConnection";
 import CustomError from "@constants/Error";
 
-type ModalStatus = "Success" | "Fail" | "Alert";
+type ModalStatus = "Success" | "Fail" | "Alert" | "Loading";
 
 export default function Login({ navigation }) {
     useEffect(() => {
@@ -43,6 +43,7 @@ export default function Login({ navigation }) {
     const [login, setLogin] = useState<string>("");
     const [password, setPassword] = useState<string>("");
     const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
+    const [modalTime, setModalTime] = useState<number | null>(3000);
     const [submit, setSubmit] = useState<boolean>(false);
 
     const [modalVisible, setModalVisible] = useState(false);
@@ -52,17 +53,26 @@ export default function Login({ navigation }) {
     async function handleLogin() {
         setSubmit(true);
         setPassword("");
+        setModalVisible(true);
+        setModalTime(null);
+        setModalStatus("Loading");
+        setModalMessage("Verificando dados de Login. Só um momento.");
         if (login && password) {
             await requestAuth();
         }
         setSubmit(false);
+        setModalTime(3000);
     }
 
     async function requestAuth() {
         try {
             if (await checkInternetConnection()) {
-                const result = await axios.get(
-                    apiUrl(`/auth/${login}/${password}`),
+                const result = await axios.post(
+                    apiUrl(`/auth`),
+                    {
+                        login,
+                        password,
+                    },
                     {
                         headers: {
                             Authorization: KeyApi,
@@ -83,6 +93,7 @@ export default function Login({ navigation }) {
                         "POINT_OFFLINE",
                         JSON.stringify([])
                     );
+                    setModalVisible(false);
                     navigation.navigate("Home");
                 }
             } else {
@@ -117,7 +128,6 @@ export default function Login({ navigation }) {
                     "Algo inesperado aconteceu. \nContate o Suporte ou Tente Novamente!."
                 );
             }
-            setModalVisible(true);
         }
     }
 
@@ -216,7 +226,7 @@ export default function Login({ navigation }) {
             <ModalNotification
                 mensagem={modalMessage}
                 status={modalStatus}
-                timeVisable={3000}
+                timeVisable={modalTime}
                 visible={modalVisible}
                 onDismiss={() => setModalVisible(false)}
             />

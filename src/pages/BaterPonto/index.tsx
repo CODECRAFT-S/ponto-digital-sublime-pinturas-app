@@ -27,7 +27,7 @@ import {
 import { handleRegisterPoint, handleWorkPoint } from "@scripts/savePoint";
 import CustomError from "@constants/Error";
 
-type ModalStatus = "Success" | "Fail" | "Alert";
+type ModalStatus = "Success" | "Fail" | "Alert" | "Loading";
 
 export default function BaterPonto({ navigation, route }) {
     let [username, setUsername] = useState("");
@@ -94,6 +94,7 @@ export default function BaterPonto({ navigation, route }) {
     const [modalVisible, setModalVisible] = useState(false);
     const [modalMessage, setModalMessage] = useState("");
     const [modalStatus, setModalStatus] = useState<ModalStatus>("Success");
+    const [modalTime, setModalTime] = useState<number | null>(3000);
     const [submit, setSubmit] = useState(false);
 
     const padZero = (num: number) => (num < 10 ? `0${num}` : num);
@@ -165,6 +166,7 @@ export default function BaterPonto({ navigation, route }) {
     }
 
     async function handleRegisterPointOffline(pointOffline: PointOfflineProps) {
+        setModalVisible(true);
         try {
             const storedPoints = await SecureStore.getItemAsync(
                 "POINT_OFFLINE"
@@ -186,7 +188,30 @@ export default function BaterPonto({ navigation, route }) {
     }
 
     async function handleBaterPonto() {
+        setModalVisible(true);
+        setModalTime(null);
+        setModalStatus("Loading");
+        setModalMessage("Sincronizando o GPS. Só um momento.");
         setSubmit(true);
+
+        const getLocationWithTimeout = async (timeout: number) => {
+            return new Promise<{
+                coords: { latitude: number; longitude: number } | null;
+            }>((resolve, reject) => {
+                const timer = setTimeout(() => resolve(null), timeout);
+
+                Location.getCurrentPositionAsync({})
+                    .then((location) => {
+                        clearTimeout(timer);
+                        resolve(location);
+                    })
+                    .catch((error) => {
+                        clearTimeout(timer);
+                        resolve(null);
+                    });
+            });
+        };
+
         try {
             const timeFull = `${padZero(dataTime.getFullYear())}-${padZero(
                 dataTime.getMonth() + 1
@@ -195,39 +220,40 @@ export default function BaterPonto({ navigation, route }) {
             )}:${padZero(dataTime.getMinutes())}:${padZero(
                 dataTime.getSeconds()
             )}`;
-            const location = await Location.getCurrentPositionAsync({});
-            const latitude = String(location.coords.latitude);
-            const longitude = String(location.coords.longitude);
+
+            const location = await getLocationWithTimeout(10000);
+            const latitude = location ? String(location.coords.latitude) : null;
+            const longitude = location
+                ? String(location.coords.longitude)
+                : null;
             // const latitude = "-7.527434828863182";
             // const longitude = "-46.04329892365424";
+
             if (await checkInternetConnection()) {
+                setModalMessage("Registrando o ponto. Só um momento.");
                 const workPoint: WorkPointProps = await handleWorkPoint(
                     latitude,
                     longitude
                 );
-                if (Array.isArray(workPoint.data)) {
-                    setModalMessage("Não tem Ponto de Trabalho na sua Área.");
-                    setModalStatus("Alert");
-                } else {
-                    await handleRegisterPoint(
-                        {
-                            workPointId: String(workPoint.data.id),
-                            latitude,
-                            longitude,
-                            datetime: timeFull,
-                            file: photo,
-                        },
-                        token
-                    );
-                    await deleteImageLocally(photo);
-                    setModalMessage("Ponto registrado com sucesso.");
-                    setModalStatus("Success");
-                }
+
+                await handleRegisterPoint(
+                    {
+                        workPointId: String(workPoint.data.id),
+                        latitude,
+                        longitude,
+                        datetime: timeFull,
+                        file: photo,
+                    },
+                    token
+                );
+                await deleteImageLocally(photo);
+                setModalMessage("Ponto registrado com sucesso.");
+                setModalStatus("Success");
             } else {
                 await handleRegisterPointOffline({
                     datetime: timeFull,
-                    latitude,
-                    longitude,
+                    latitude: latitude ?? "null",
+                    longitude: longitude ?? "null",
                     file: await saveImageLocally(
                         photo,
                         `${timeFull}-${latitude}_${longitude}`
@@ -249,8 +275,8 @@ export default function BaterPonto({ navigation, route }) {
             }
         }
         setSubmit(false);
+        setModalTime(3000);
         setPhoto(notFoundImage);
-        setModalVisible(true);
     }
 
     const truncateText = (text: string, length: number) => {
@@ -320,7 +346,7 @@ export default function BaterPonto({ navigation, route }) {
             <ModalNotification
                 mensagem={modalMessage}
                 status={modalStatus}
-                timeVisable={3000}
+                timeVisable={modalTime}
                 visible={modalVisible}
                 onDismiss={() => setModalVisible(false)}
             />

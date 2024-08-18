@@ -18,7 +18,7 @@ import { handleRegisterPoint, handleWorkPoint } from "@scripts/savePoint";
 import { deleteImageLocally } from "@scripts/handlerImage";
 import CustomError from "@constants/Error";
 
-type ModalStatus = "Success" | "Fail" | "Alert";
+type ModalStatus = "Success" | "Fail" | "Alert" | "Loading";
 
 export default function HistoricoPonto({ navigation }) {
     const [refreshing, setRefreshing] = useState(false);
@@ -29,6 +29,7 @@ export default function HistoricoPonto({ navigation }) {
     const [modalVisible, setModalVisible] = useState(false);
     const [modalMessage, setModalMessage] = useState("");
     const [modalStatus, setModalStatus] = useState<ModalStatus>("Success");
+    const [modalTime, setModalTime] = useState<number | null>(3000);
 
     const scrollViewRef = useRef<ScrollView>(null);
 
@@ -107,8 +108,12 @@ export default function HistoricoPonto({ navigation }) {
 
     async function handlerAsyncPoint() {
         setAsyncPoints(true);
+        setModalVisible(true);
         try {
             if (await checkInternetConnection()) {
+                setModalTime(null);
+                setModalStatus("Loading");
+                setModalMessage("Aguarde o processo. Só um momento.");
                 const reversedPoints = [...(pointsOffline || [])].reverse();
                 for (let point of reversedPoints) {
                     await registerAsyncPoint(point);
@@ -136,7 +141,7 @@ export default function HistoricoPonto({ navigation }) {
                 );
             }
         }
-        setModalVisible(true);
+        setModalTime(3000);
         setAsyncPoints(false);
     }
 
