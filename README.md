@@ -71,7 +71,7 @@ Depois de iniciar o aplicativo, os funcionários podem registrar seu ponto de ma
 
 #### Luis Eduardo Rodrigues Miranda:
   
-[![GitHub](https://img.shields.io/badge/GitHub-000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Luisedu012) [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)]()
+[![GitHub](https://img.shields.io/badge/GitHub-000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Luisedu012) [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/luis-eduardo-rodrigues-miranda-3b7b41260/?originalSubdomain=br)
 
 #### Pedro Henrique Martins Borges:
   
